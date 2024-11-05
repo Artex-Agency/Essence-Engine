@@ -1,0 +1,79 @@
+# ¸_____¸____¸________¸____¸_¸  ¸__¸
+# |  _  |  __ \_    _|   __|  \/  /
+# |     |     / |  | |   __|}    {
+# |__|__|__|__\ |__| |_____|__/\__\
+# ARTEX SOFTWARE :: GITHUB CONTROLS
+#
+#
+# 01: CURRENT PROJECT IGNORES
+#=================================#
+
+
+# 02: ENVIRONMENT SECRET OR UNIQUE
+#=================================#
+.env.production
+.env.essesnce
+.env
+.env.backup
+*.log
+.project
+.settings
+auth.json
+/.fleet
+/.idea
+.php-version
+.buildpath
+/.vagrant
+*.sqlite
+*.sql
+
+# 03: ARTEX SOFTWARE FILES & DATA
+#=================================#
+atx.system.json
+atx.system.log
+/dev/
+storage/keys/*
+essence.key
+/backups/
+
+# 04: COMMON PACKAGE IGNORES
+#=================================#
+/vendor/
+node_modules/
+public_html/storage
+public_html/hot
+public/storage
+public/hot
+storage/*.key
+Homestead.yaml
+Homestead.json
+/.phpunit.cache
+.phpunit.result.cache
+.phpactor.json
+phpdoc.dist.xml
+.phpdoc
+composer.lock
+composer.phar
+composer.lock
+
+# 05: SYSTEM & SOFTWARE BAGGAGE
+#=================================#
+.Spotlight-V100
+.DS_Store
+ehthumbs.db
+Thumbs.db
+$RECYCLE.BIN/
+.directory
+.Trash-*
+.Trashes
+.AppleDouble
+.LSOverride
+Desktop.ini
+*.tmlanguage.cache
+*.tmPreferences.cache
+*.stTheme.cache
+*.sublime-workspace
+*.sublime-project
+._*
+/.vscode
+.phpintel

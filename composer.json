@@ -1,0 +1,54 @@
+{
+    "name": "artex-agency/essence-engine",
+    "description": "A meta-framework for PHP, Essence Engine empowers developers to build scalable, high-performing frameworks tailored to unique application needs.",
+    "keywords": [
+        "php", 
+        "meta-framework", 
+        "framework-engine", 
+        "high-performance", 
+        "scalable", 
+        "artex essence",
+        "artex software"
+    ],
+    "type": "library",
+    "homepage": "https://artexessence.com/engine/",
+    "authors": [
+        {
+            "name":     "James Gober",
+            "email":    "contact@jamesgober.com",
+            "homepage": "https://jamesgober.com/",
+            "role":     "Project Lead, Architect, Engineer, Developer, Designer"
+        }
+    ],
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "license": "Artex Permissive Software License",
+    "require": {
+        "php": ">=8.2"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.4",
+        "phpstan/phpstan": "^1.9",
+        "phpstan/phpstan-deprecation-rules": "^1.0",
+        "phpstan/phpstan-strict-rules": "^1.4",
+        "predis/predis": "^1.1 || ^2"
+    },
+    "scripts": {
+        "test": "phpunit",
+        "phpstan": "phpstan analyse src --level=max",
+        "analyze": [
+            "@phpstan",
+            "@test"
+        ]
+    },
+    "autoload": {
+        "psr-4": {
+            "Essence\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Essence\\Tests\\": "tests/"
+        }
+    }
+}

@@ -1,0 +1,54 @@
+{
+    "name": "Artex Essence Engine",
+    "short-name": "Essence Engine",
+    "description": "A meta-framework for PHP, Essence Engine empowers developers to build scalable, high-performing frameworks tailored to unique application needs.",
+    "keywords": "",
+    "project": {
+        "type": "Meta Framework",
+        "language": {
+            "name": "PHP",
+            "version": "8.2"
+        }
+    },
+    "version": {
+        "current":   "1.0.0-dev.1",
+        "short":     "1.0.0",
+        "stability": "dev"
+    },
+    "dates": {
+        "start":   "2024-11-4",
+        "update":  "2024-11-4",
+        "release": ""
+    },
+    "links": {
+        "homepage":      "https://artexessence.com/engine/",
+        "documentation": "https://artexessence.com/engine/documentation/",
+        "issues":        "https://github.com/Artex-Agency/Essence-Engine/issues",
+        "repository":    "https://github.com/Artex-Agency/Essence-Engine"
+    },
+    "license": {
+        "name": "Artex Permissive Software License",
+        "link": "https://artexsoftware.com"
+    },
+    "authors": [
+        {
+            "name":     "James Gober",
+            "email":    "contact@jamesgober.com",
+            "homepage": "https://jamesgober.com/",
+            "linktree": "https://jamesgober.link/",
+            "social":   {
+                "x":      "@jamesgober",
+                "github": "@jamesgober"
+            },
+            "role":     "Owner, Project Lead, Architect, Engineer, Developer, Designer"
+        }
+    ],
+    "team": {
+        "name": "Artex Software",
+        "link": "https://artexsoftware.com/"
+    },
+    "company": {
+        "name": "Artex Agency Inc.",
+        "link": "https://artexagency.com/"
+    }
+}
