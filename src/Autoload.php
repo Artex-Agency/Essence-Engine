@@ -14,7 +14,7 @@
  */
 declare(strict_types=1);
 
-namespace Essence\Bootstrap;
+namespace Artex\Essence\Engine;
 
 use \trim;
 use \ltrim;
@@ -34,7 +34,7 @@ use \spl_autoload_register;
  * PHP classes based on their fully-qualified names. The autoloader is 
  * registered automatically upon instantiation.
  * 
- * @package    Essence\Bootstrap
+ * @package    Artex\Essence\Engine
  * @category   Bootstrap
  * @access     public
  * @version    1.0.0

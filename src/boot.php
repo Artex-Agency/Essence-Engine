@@ -25,11 +25,39 @@
  */
 declare(strict_types=1);
 
+use \Artex\Essence\Engine\Engine;
 use \Artex\Essence\Engine\Autoload;
-//use \Essence\Bootstrap\Bootstrap; 
-//use \Essence\Container\ServiceContainer;
+use \Artex\Essence\Engine\Bootstrap\Bootstrap;
+use \Artex\Essence\Engine\Components\ServiceContainer;
+use \Artex\Essence\Engine\Bootstrap\BootstrapInterface;
 
-    // Load autoloader if not already loaded.
-    (class_exists('Autoload') OR 
-        require(ENGINE_PATH.'Autoload.php')
-    );
+// Load autoloader if not already loaded.
+(class_exists('Autoload') OR 
+    require(ENGINE_PATH . 'Bootstrap/constants.php')
+);
+
+// Load autoloader if not already loaded.
+(class_exists('Autoload') OR 
+    require(ENGINE_PATH . 'Autoload.php')
+);
+
+// Activate autoloader
+$Autoload = new Autoload('Artex\Essence\Engine', ENGINE_PATH);
+
+// Set Aliases
+class_alias('Engine', 'Engine');
+class_alias('Bootstrap', 'Bootstrap');
+class_alias('ServiceContainer', 'Container');
+class_alias('BootstrapInterface'. 'BootstrapInterface');
+
+// Initialize the ServiceContainer singleton instance
+$container = ServiceContainer::getInstance();
+
+// Add autoload to the services.
+$container->set('autoload', $Autoload);
+
+// Add bootstrap to the services.
+$container->set('bootstrap', new Bootstrap());
+
+// Add engine to the services.
+$container->set('engine', new Engine());

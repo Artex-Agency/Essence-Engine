@@ -14,21 +14,25 @@
  */
 declare(strict_types=1);
 
-namespace Artex\Essence\Engine;
+namespace Artex\Essence\Engine\Bootstrap;
 
-class Engine
+/**
+ * Bootstrap Interface
+ *
+ * Description
+ * 
+ * @package    Artex\Essence\Engine\Bootstrap
+ * @category   Bootstrap
+ * @access     public
+ * @version    1.0.0
+ * @author     James Gober <james@jamesgober.com>
+ * @since      1.0.0
+ * @link       https://artexessence.com/core/ Project Website
+ * @license    Artex Permissive Software License (APSL)
+ * @copyright  © 2024 Artex Agency Inc.
+ */
+interface BootstrapInterface
 {
-
-    const PACKAGE = 'Artex Essence Engine';
-    const VERSION = '1.0.0-Dev.1';
-    const WEBSITE = 'https://artexessence.com/engine/';
-
-
-
-    public function __construct()
-    {
-        echo '<h2>ESSENCE ENGINE: ENGINE</h2>';
-    }
 
 
 
