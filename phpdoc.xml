@@ -19,7 +19,7 @@
                 <!--1 or more repetitions:-->
                 <path>tests/**/*</path>
             </ignore>
-            <default-package-name>Essence</default-package-name>
+            <default-package-name>Artex\Essence\Engine</default-package-name>
             <!--Optional:-->
             <include-source>true</include-source>
         </api>

@@ -12,12 +12,13 @@
     ],
     "type": "library",
     "homepage": "https://artexessence.com/engine/",
+    "repository": "https://github.com/Artex-Agency/Essence-Engine",
     "authors": [
         {
-            "name":     "James Gober",
-            "email":    "contact@jamesgober.com",
+            "name": "James Gober",
+            "email": "contact@jamesgober.com",
             "homepage": "https://jamesgober.com/",
-            "role":     "Project Lead, Architect, Engineer, Developer, Designer"
+            "role": "Project Lead, Architect, Engineer, Developer, Designer"
         }
     ],
     "minimum-stability": "dev",
@@ -43,12 +44,16 @@
     },
     "autoload": {
         "psr-4": {
-            "Essence\\": "src/"
+            "Artex\\Essence\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Essence\\Tests\\": "tests/"
+            "Artex\\Essence\\Tests\\": "tests/"
         }
+    },
+    "support": {
+        "issues": "https://github.com/Artex-Agency/Essence-Engine/issues",
+        "docs": "https://artexessence.com/docs/engine"
     }
 }

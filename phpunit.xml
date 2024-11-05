@@ -4,7 +4,7 @@
          bootstrap="vendor/autoload.php"
          colors="true">
     <testsuites>
-        <testsuite name="Artex Essence Core Tests">
+        <testsuite name="Artex Essence Engine Tests">
             <directory>tests</directory>
         </testsuite>
     </testsuites>
