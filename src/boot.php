@@ -23,8 +23,8 @@
  */
 declare(strict_types=1);
 
-use \Artex\Essence\Engine\Engine;
-use \Artex\Essence\Engine\Autoload;
+use \Artex\Essence\Engine\System\Environment\Variables;
+
 
 // Check Engine Root Path
 (defined('ENGINE_ROOT') OR 
@@ -44,24 +44,30 @@ use \Artex\Essence\Engine\Autoload;
 );
 
 // Load autoloader if not already loaded.
-(class_exists('Autoload') OR 
+(class_exists('\Artex\Essence\Engine\Autoload') OR 
     require(ENGINE_PATH . 'Autoload.php')
 );
 
 // Activate autoloader
-$Autoload = new Autoload('Artex\Essence\Engine', ENGINE_PATH);
+$Autoload = new \Artex\Essence\Engine\Autoload(
+    ENGINE_NAMESPACE, 
+    ENGINE_PATH
+);
 
 // Set Aliases
 class_alias('\Artex\Essence\Engine\Engine', 'Engine');
+class_alias('\Artex\Essence\Engine\System\Runtime', 'Runtime');
 class_alias('\Artex\Essence\Engine\Bootstrap\Bootstrap', 'Bootstrap');
-class_alias('\Artex\Essence\Engine\Components\ServiceContainer', 'Container');
-class_alias('\Artex\Essence\Engine\Bootstrap\BootstrapInterface'. 'BootstrapInterface');
+class_alias('\Artex\Essence\Engine\Components\ServiceContainer', 'ServiceContainer');
+class_alias('\Artex\Essence\Engine\Bootstrap\BootstrapInterface', 'BootstrapInterface');
 
 // Initialize the ServiceContainer singleton instance
-$container = Container::getInstance();
+$container = ServiceContainer::getInstance();
 
 // Add autoload to the services.
 $container->set('autoload', $Autoload);
+
+
 
 
 echo '<h1>Essence Boot</h1>';
@@ -71,10 +77,29 @@ echo '<p>&rarr; ' . ENGINE_VERSION . '</p>';
 echo '<p>&rarr; ' . ENGINE_WEBSITE . '</p>';
 echo '<p>&rarr; ' . ENGINE_NAMESPACE . '</p>';
 
+
+$Runtime = new Runtime((ROOT_PATH . '.env'));
+
 exit(0);
 
-// Add bootstrap to the services.
-$container->set('bootstrap', new Bootstrap());
+
+
+
+
+$container->set('runtime', 
+    new Runtime
+    (
+        new Variables( // Load environment variables
+            (ROOT_PATH . '.env'),
+            'env'
+        )
+    )
+);
+
+
+
 
 // Add engine to the services.
-$container->set('engine', new Engine());
+$container->set('engine', new Engine(
+    $container
+));

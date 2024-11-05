@@ -24,10 +24,20 @@ class Engine
     const WEBSITE = 'https://artexessence.com/engine/';
 
 
+    private ?ServiceContainer $Container = null;
 
-    public function __construct()
+
+    public function __construct(?ServiceContainer $Container)
     {
         echo '<h2>ESSENCE ENGINE: ENGINE</h2>';
+
+
+        // Set container
+        $this->Container = $Container;
+
+        // Add bootstrap to the services.
+        $container->set('bootstrap', new Bootstrap());
+
     }
 
 
