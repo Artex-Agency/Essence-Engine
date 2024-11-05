@@ -44,12 +44,12 @@
     },
     "autoload": {
         "psr-4": {
-            "Artex\\Essence\\": "src/"
+            "Artex\\Essence\\Engine\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Artex\\Essence\\Tests\\": "tests/"
+            "Artex\\Essence\\Engine\\Tests\\": "tests/"
         }
     },
     "support": {

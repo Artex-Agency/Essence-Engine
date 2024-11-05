@@ -47,6 +47,7 @@ public/hot
 storage/*.key
 Homestead.yaml
 Homestead.json
+/.phpdoc/
 /.phpunit.cache
 .phpunit.result.cache
 .phpactor.json
