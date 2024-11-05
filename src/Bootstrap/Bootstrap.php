@@ -5,7 +5,7 @@
  # |_____|_____|_____|_____|__|╲__|_____|_____|
  # ARTEX ESSENCE ENGINE ⦙⦙⦙⦙⦙ A PHP META-FRAMEWORK
 /**
- * This file is part of the Artex Essence Core framework.
+ * This file is part of the Artex Essence Engine and meta-framework.
  *
  * @link      https://artexessence.com/engine/ Project Website
  * @link      https://artexsoftware.com/ Artex Software
@@ -37,8 +37,8 @@ class Bootstrap
     /** @var integer STARTUP The pre-boot stage flag. */
     const STARTUP  = 0;
 
-    /** @var integer STARTUP The initial boot stage flag. */
-    const BOOTING  = 1;
+    /** @var integer LOADING [flag] The initial loading stage. */
+    const LOADING  = 1;
 
     /** @var integer SYSTEM The system boot stage flag. */
     const SYSTEM   = 2;
@@ -50,15 +50,20 @@ class Bootstrap
     const FRAMEWORK   = 4;
 
     /** @var integer APPLICATION The application boot stage flag. */
-    const APPLICATION = 5;
+    const BOOTING = 5;
 
-    /** @var integer FINISHED The finished stage flag. */
-    const FINISHED    =  6;
+    /** @var integer BOOTED [flag] Application boot completed. */
+    const BOOTED    =  6;
 
     protected int $stage = self::STARTUP;
 
     protected bool $booted = false;
 
+    protected array $bootstraps = [];
+
+    /**
+     * Undocumented function
+     */
     public function __construct()
     {
         echo '<h2>ESSENCE ENGINE: BOOTSTRAP</h2>';
@@ -66,10 +71,27 @@ class Bootstrap
 
 
 
-        $this->stage = self::BOOTING;
+        $this->stage = self::LOADING;
+    }
+
+    /**
+     * Undocumented function
+     *
+     * @return boolean
+     */
+    public function isReady(): bool
+    {
+        return (($stage > self::STARTUP && $stage < self::BOOTING) ? true : false);
     }
 
 
+    public function add(BootstrapInterface $bootstrap): bool
+    {
+        if(!$this->isReady()){
+            return false;
+        }
+
+    }
 
     public function call(callable $callback): bool
     {

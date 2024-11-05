@@ -10,12 +10,10 @@
  * Core utility functions to simplify operations across the application.
  * Designed to enhance debugging, error handling, and general utility.
  *
- * This file is part of the Artex Essence Engine and meta-framework,
- * designed to serve as the foundational layer for high-performance,
- * flexible PHP application frameworks.
+ * This file is part of the Artex Essence Engine and meta-framework.
  *
  * @package    Artex\Essence\Engine
- * @category   Boot
+ * @category   Base
  * @version    1.0.0
  * @since      1.0.0
  * @author     James Gober <james@jamesgober.com>

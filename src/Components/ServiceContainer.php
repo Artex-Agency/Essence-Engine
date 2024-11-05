@@ -5,8 +5,7 @@
  # |_____|_____|_____|_____|__|╲__|_____|_____|
  # ARTEX ESSENCE ENGINE ⦙⦙⦙⦙⦙ A PHP META-FRAMEWORK
 /**
- * This file is part of the Artex Essence Engine 
- * Meta-Framework.
+ * This file is part of the Artex Essence Engine and meta-framework.
  *
  * @link       https://artexessence.com/engine/ Project Website
  * @link       https://artexsoftware.com/ Artex Software
@@ -15,7 +14,7 @@
  */
 declare(strict_types=1);
 
-namespace \Artex\Essence\Engine\Components;
+namespace Artex\Essence\Engine\Components;
 
 use Closure;
 use RuntimeException;

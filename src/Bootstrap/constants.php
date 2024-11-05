@@ -9,9 +9,7 @@
  *
  * Core constants used throughout the Artex Essence Engine.
  *
- * This file is part of the Artex Essence Engine meta-framework,
- * designed to serve as the foundational layer for high-performance,
- * flexible PHP application frameworks.
+ * This file is part of the Artex Essence Engine and meta-framework.
  *
  * @package    Artex\Essence\Engine
  * @category   Boot
@@ -34,41 +32,10 @@ declare(strict_types=1);
 defined('ENGINE_NAME') || define('ENGINE_NAME', 'Essence Engine');
 
 /** 
- * The engine directory root.
- * @var string ENGINE_ROOT
- */
-define('ENGINE_ROOT', rtrim(dirname(__DIR__), '/') . '/');
-
-/** 
- * The engine directory path.
- * @var string ENGINE_PATH 
- */
-define('ENGINE_PATH', rtrim(__DIR__, '/') . '/');
-
-echo '<p>FILE VERSION</p>';
-if(!$version = file_get_contents(ENGINE_ROOT . 'VERSION')){
-    die('NO FILE');
-}
-echo "<p>$version</p>";
-exit(0);
-
-/** 
  * The framework engine package name. 
  * @var string ENGINE_PACKAGE
  */
 defined('ENGINE_PACKAGE') || define('ENGINE_PACKAGE', 'Artex Essence Engine');
-
-/** 
- * The framework engine version. 
- * @var string ENGINE_VERSION 
- */
-defined('ENGINE_VERSION') || define('ENGINE_VERSION', 'Artex Essence Engine');
-
-/** 
- * The framework engine version stability. 
- * @var string ENGINE_STABILITY 
- */
-defined('ENGINE_STABILITY') || define('ENGINE_STABILITY', 'dev');
 
 /** 
  * The framework engine website. 
@@ -82,6 +49,32 @@ defined('ENGINE_WEBSITE') || define('ENGINE_WEBSITE', 'https://artexessence.com/
  */
 defined('ENGINE_NAMESPACE') || define('ENGINE_NAMESPACE', '\Artex\Essence\Engine');
 
+/** 
+ * The framework engine base version. 
+ * @var string ENGINE_BASE_VERSION 
+ */
+defined('ENGINE_BASE_VERSION') || define('ENGINE_BASE_VERSION', '1.0.0');
+
+/** 
+ * The framework engine version stability. 
+ * @var string ENGINE_STABILITY 
+ */
+defined('ENGINE_STABILITY') || define('ENGINE_STABILITY', 'dev');
+
+// Get current version data
+$version_file = ENGINE_ROOT . 'VERSIONS';
+if(!is_file($version_file) || !$version_data = file_get_contents($version_file)){
+   $version_data = ENGINE_BASE_VERSION;
+}
+
+/** 
+ * The framework engine version. 
+ * @var string ENGINE_VERSION 
+ */
+defined('ENGINE_VERSION') || define('ENGINE_VERSION', $version_data);
+
+// Clean up
+unset($version_file, $version_data);
 
 
 // Shortcuts for PHP constants

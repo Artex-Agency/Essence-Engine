@@ -5,7 +5,7 @@
  # |_____|_____|_____|_____|__|╲__|_____|_____|
  # ARTEX ESSENCE ENGINE ⦙⦙⦙⦙⦙ A PHP META-FRAMEWORK
 /**
- * This file is part of the Artex Essence Core framework.
+ * This file is part of the Artex Essence Engine and meta-framework.
  *
  * @link      https://artexessence.com/engine/ Project Website
  * @link      https://artexsoftware.com/ Artex Software
