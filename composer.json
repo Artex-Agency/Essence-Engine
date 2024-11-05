@@ -45,7 +45,11 @@
     "autoload": {
         "psr-4": {
             "Artex\\Essence\\Engine\\": "src/"
-        }
+        },
+        "files": [
+            "src/boot.php",
+            "src/helpers.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {

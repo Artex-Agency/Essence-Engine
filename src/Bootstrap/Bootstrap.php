@@ -24,6 +24,7 @@ class Bootstrap
     public function __construct()
     {
         echo '<h2>ARTEX ESSENCE: ENGINE</h2>';
+        echo '<p>ENGINE PATH: ' . ENGINE_PATH . '</p>';
     }
 
 
