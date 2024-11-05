@@ -9,7 +9,7 @@
   <sup>FRAMEWORK &nbsp;ENGINE</sup>
 </h1>
 
-The **Artex Essence Engine** is a **[meta-framework](#meta-framework)** and **[framework engine](#framework-engine)** for rapidly building high-performing, flexible, and sustainable application frameworks using PHP 8. Designed for speed, adaptability, and maximum resource efficiency, Essence serves as the robust foundation upon which **[application frameworks](#application-framework)** are built.
+The **Artex Essence Engine** is a **[meta-framework](#meta-framework)** and **[framework engine](#framework-engine)** for rapidly building high-performing, flexible, and sustainable application frameworks using PHP 8. Designed for speed, adaptability, and maximum resource efficiency, Essence serves as the robust foundation upon which application frameworks are built.
 
 &nbsp;
 
