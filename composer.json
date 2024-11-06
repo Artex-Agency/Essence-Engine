@@ -49,8 +49,7 @@
             "Artex\\Essence\\Engine\\": "src/"
         },
         "files": [
-            "src/boot.php",
-            "src/helpers.php"
+            "src/boot.php"
         ]
     },
     "autoload-dev": {

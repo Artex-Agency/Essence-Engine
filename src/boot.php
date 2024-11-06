@@ -39,9 +39,15 @@ use \Artex\Essence\Engine\System\Environment\Variables;
 );
 
 // Load constants if not already loaded.
-(defined('ENGINE_NAMESPACE') OR 
-    require(ENGINE_PATH . 'Bootstrap/constants.php')
-);
+if(!defined('ENGINE_NAMESPACE')){
+
+    // Load constants.
+    require(ENGINE_PATH . 'Bootstrap/constants.php');
+
+    // Load helpers.
+    require(ENGINE_PATH . 'helpers.php');
+
+}
 
 // Load autoloader if not already loaded.
 (class_exists('\Artex\Essence\Engine\Autoload') OR 
@@ -82,28 +88,3 @@ $Runtime = new Runtime(APP_ENV_FILE);
 
 //$Runtime->configure(CFG_ENGINE_PATH . 'server.cfg.php');
 
-engine_load_directive('server');
-
-exit(0);
-
-
-
-
-
-$container->set('runtime', 
-    new Runtime
-    (
-        new Variables( // Load environment variables
-            (ROOT_PATH . '.env'),
-            'env'
-        )
-    )
-);
-
-
-
-
-// Add engine to the services.
-$container->set('engine', new Engine(
-    $container
-));
