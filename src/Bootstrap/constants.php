@@ -124,3 +124,13 @@ define('ESS_PHP_MAX', '');
  * @var string ESS_PHP_BEST 
  */
 define('ESS_PHP_BEST', '8.2');
+
+
+
+// CONFIG PATHS
+// ==========================================================================
+
+/** @var string CFG_ENGINE_PATH The engine directives configuration path. */
+defined('CFG_ENGINE_PATH') || define('CFG_ENGINE_PATH', CONFIG_PATH . 'engine'  . '/');
+
+// ==========================================================================

@@ -19,291 +19,260 @@ namespace Artex\Essence\Engine\System\Environment;
 use \trim;
 use \putenv;
 use \is_file;
+use \in_array;
 use \array_keys;
 use \preg_match_all;
 use \PREG_SET_ORDER;
 use \file_get_contents;
 
 /**
- * Environment Variables
+ * Environment Variables Manager
  *
- * Description
+ * Manages and controls environment variables within the Artex Essence Engine.
+ * This class allows environment variables to be loaded from a `.env` file, 
+ * managed using either PHP’s built-in functions (`putenv`/`getenv`) or directly 
+ * through the $_ENV superglobal. It also provides functionality to parse, add, 
+ * retrieve, and clear environment variables in a flexible and configurable way.
+ *
+ * ### Core Features:
+ * - **Loading**: Load and parse environment variables from a `.env` file.
+ * - **Storage Options**: Configurable methods to either use PHP's environment functions or 
+ *   inject variables directly into $_ENV.
+ * - **Access and Modification**: Retrieve, add, and remove environment variables.
+ * - **Reset and Cleanup**: Clear or reset variables as needed, including resetting at destruct.
+ *
+ * ### Usage Examples:
+ * ```php
+ * // Initialize with .env file and set method to 'env' (default)
+ * $envVars = new Variables('/path/to/.env', 'env');
  * 
+ * // Retrieve a variable with a default fallback
+ * $debugMode = $envVars->get('DEBUG_MODE', false);
+ * 
+ * // Add a custom variable
+ * $envVars->addVar('API_KEY', '123456');
+ * 
+ * // Clear all environment variables
+ * $envVars->clear();
+ * ```
+ *
  * @package    Artex\Essence\Engine\System\Environment
  * @category   System
  * @access     public
  * @version    1.0.0
- * @author     James Gober <james@jamesgober.com>
  * @since      1.0.0
- * @link       https://artexessence.com/core/ Project Website
+ * @author     James Gober
+ * @link       https://artexessence.com/engine/ Project Website
  * @license    Artex Permissive Software License (APSL)
- * @copyright  © 2024 Artex Agency Inc.
  */
 class Variables
 {
     /**
-     * Use the $_ENV superglobal to contain environment variables.
-     * If enabled, application environment variables will be injected
-     * directly into the $_ENV superglobal.
-     *
-     * @var boolean
+     * Injects environment variables directly into $_ENV if enabled.
+     * 
+     * @var bool
      */
     protected bool $useENV = true;
 
     /**
-     * Use PHP built-in functions to modify environment variables. If 
-     * enabled, application environment variables will be added, read, 
-     * and removed using PHP's 'putenv' and 'setenv' functions.
-     *
-     * @var boolean
+     * Uses PHP’s built-in environment variable functions (putenv/getenv)
+     * if enabled.
+     * 
+     * @var bool
      */
     protected bool $usePHP = false;
 
     /**
-     * Environment variables
+     * Collection of loaded environment variables.
      *
-     * @var array|null $variables
+     * @var array|null
      */
-    protected array|null $variables = null;
+    protected ?array $variables = null;
 
     /**
-     * Env file regex expression
+     * Regex pattern for parsing .env key-value pairs.
      * 
-     * Match key-value pairs, expecting keys and values separated by 
-     * space, colon, or equals sign.
+     * Matches key-value pairs, using space, colon, or equals as separators.
      *
-     * @var string $regex
+     * @var string
      */
     protected string $regex = '/^(?P<key>[a-zA-Z._\-]+[a-zA-Z0-9]{1})\s*[:=]\s*(?P<value>[^\r\n]*)$/m';
 
     /**
-     * Environment Variables Constructor
-     * 
-     * Construct, configure, and optionally load a .env file.
+     * Constructor to configure the environment variables and optionally
+     * load a specified .env file.
      *
-     * @param string $file Optional .env file path.
-     * @param string $method The variable handling method, `env` will 
-     *                       directly inject and manage the variables 
-     *                       within the $_ENV superglobal, and `php`
-     *                       will use the PHP built-in functionality 
-     *                       such as `putenv` to store and manage the 
-     *                       variables.
+     * @param string $file Path to the optional .env file.
+     * @param string $method The variable handling method (`env` or `php`).
      */
-    public function __construct(string $file='', string $method="env")
+    public function __construct(string $file = '', string $method = 'env')
     {
         $method = strtolower(trim($method));
-        switch($method){
-            case 'php':
-                $this->usePHP(true);
-                $this->variables = [];
-                break;
-            case 'env':
-            default:
-                $this->useENV(true);
-                $this->variables = ($_ENV ?? []);
-                break;
+        if ($method === 'php') {
+            $this->usePHP(true);
+            $this->variables = [];
+        } else {
+            $this->useENV(true);
+            $this->variables = $_ENV;
         }
-        if($file){
+        
+        if ($file) {
             $this->load($file);
         }
     }
 
-
     /**
-     * Loads environment variable file
+     * Load and parse environment variables from a .env file.
      *
-     * @param string $file The .env file to load and parse.
-     * @return boolean True if the variables were successfully loaded 
-     *                 and parsed; otherwise, if the file is missing, 
-     *                 corrupted, its contents formatting is invalid, 
-     *                 or in the event of an error false will be 
-     *                 returned.
+     * @param string $file Path to the .env file.
+     * @return bool True on success, false on failure.
      */
-    public function load(string $file=''): bool
+    public function load(string $file): bool
     {
-        // Abort if file missing or corrupted
-        if((!is_file($file)) || !$data = file_get_contents($file)){
+        if (!is_file($file) || !$data = file_get_contents($file)) {
             return false;
         }
         return $this->parse($data);
     }
 
     /**
-     * Parse vars from env file contents.
-     * 
-     * Parses the file data contents from the .env file into an array 
-     * of key => value variables and sets them 
+     * Parse the contents of a .env file and load variables into memory.
      *
-     * @param string $data The data contents from the environment file.
-     * @return boolean True if valid env format parsed; otherwise false.
+     * @param string $data The content of the .env file.
+     * @return bool True if successfully parsed, false otherwise.
      */
-    private function parse(string $data):bool
+    private function parse(string $data): bool
     {
-        // Abort if invalid data or no matches.
         if (!$data || !preg_match_all($this->regex, $data, $matches, PREG_SET_ORDER)) {
             return false;
         }
 
-        // Loop variable matches
         foreach ($matches as $match) {
-
-            // Attempt to add variable
-            $this->addVar(
-                $match['key'],
-                trim($match['value'])
-            );
+            $this->addVar($match['key'], trim($match['value']));
         }
         return true;
     }
 
     /**
-     * Get environment variable value
+     * Retrieve an environment variable by key, with optional default.
      *
-     * @param string $key The unique key to the variable.
-     * @param mixed $default The default value if no value is found.
-     * @return mixed The value of the variable if found; otherwise the 
-     *               default value is returned.
+     * @param string $key The variable key.
+     * @param mixed $default A default value if the variable is not found.
+     * @return mixed The variable value or default.
      */
-    private function get(string $key, mixed $default=null):mixed
+    public function get(string $key, mixed $default = null): mixed
     {
-        if($this->usePHP && isset($this->variables[$key])){
-            return ($this->variables[$key] ?? $default);
-        }
-        return ($_ENV[$key] ?? default);
+        return $this->usePHP && isset($this->variables[$key])
+            ? $this->variables[$key] ?? $default
+            : $_ENV[$key] ?? $default;
     }
 
     /**
-     * Get environment variable boolean value
+     * Retrieve an environment variable as a boolean.
      *
-     * @param string $key The unique key to the variable.
-     * @param bool $default The default value if no value is found.
-     * @return boolean The boolean value of the variable if found; 
-     *                 otherwise the default value is returned.
+     * @param string $key The variable key.
+     * @param bool $default Default boolean value if not found.
+     * @return bool
      */
-    private function getBool(string $key, bool $default=false):bool
+    public function getBool(string $key, bool $default = false): bool
     {
         $value = $this->get($key, $default);
-        return (('true' === $value || '1' === $value || 1 === $value) ? true : false);
+        return in_array($value, ['true', '1', 1], true);
     }
 
     /**
-     * Add an environment variable
+     * Add an environment variable to the store.
      *
-     * @param string $key The unique key to the variable.
+     * @param string $key The variable key.
      * @param mixed $value The variable value.
      * @return void
      */
-    private function addVar(string $key, mixed $value):void
+    public function addVar(string $key, mixed $value): void
     {
-        // Require key and value
-        if ($key && $value === '') {
-            return;
+        if ($key && $value !== '') {
+            if ($this->useENV) {
+                $_ENV[$key] = $value;
+                return;
+            }
+            $this->variables[$key] = $value;
+            putenv("$key=$value");
         }
-
-        // Add direct to ENV
-        if($this->useENV){
-            $_ENV[$key] = $value;
-            return;
-        }
-
-        // Adding to collection
-        $this->variables[$key] = $value;
-        putenv("$key=$value");
     }
 
     /**
-     * Remove environment variable by Key
+     * Remove an environment variable by key.
      *
-     * @param string $key The unique key to the variable.
+     * @param string $key The variable key.
      * @return void
      */
-    private function remVar(string $key):void
+    public function remVar(string $key): void
     {
-        // Remove with PHP
-        if($this->usePHP && isset($this->variables[$key])){
+        if ($this->usePHP && isset($this->variables[$key])) {
             putenv($key);
             unset($this->variables[$key]);
             return;
         }
-
-        // Remove from ENV
-        if(isset($_ENV[$key])){
+        if (isset($_ENV[$key])) {
             unset($_ENV[$key]);
-            return;
         }
     }
 
     /**
-     * Clear Environment Variables
+     * Clear all stored environment variables.
      *
      * @return void
      */
-    private function clear():void
+    public function clear(): void
     {
-        // Clear ENV
-        if($this->useENV){
-            $_ENV[$key] = [];
+        if ($this->useENV) {
+            $_ENV = [];
             return;
         }
-
-        // Loop variable keys and remove using putenv
-        $keys = array_keys($this->variables);
-        foreach($keys as $key){
+        foreach (array_keys($this->variables) as $key) {
             putenv($key);
         }
-
-        // Reset collection
         $this->variables = [];
     }
 
     /**
-     * Use the $_ENV superglobal setting
-     * 
-     * Enables/disables the direct injection of environment variables 
-     * into the $_ENV superglobal.
+     * Enable or disable direct injection into the $_ENV superglobal.
      *
-     * @param boolean $enabled
+     * @param bool $enabled
      * @return void
      */
-    public function useENV(bool $enabled=true):void
+    public function useENV(bool $enabled = true): void
     {
         $this->useENV = $enabled;
-        $this->usePHP = (($enabled === true) ? false : true);
+        $this->usePHP = !$enabled;
     }
 
     /**
-     * Use the PHP Environment superglobal setting
-     * 
-     * Enables/disables the direct injection of environment variables 
-     * into the $_ENV superglobal.
+     * Enable or disable use of PHP’s putenv and getenv functions.
      *
-     * @param boolean $enabled
+     * @param bool $enabled
      * @return void
      */
-    public function usePHP(bool $enabled=true):void
+    public function usePHP(bool $enabled = true): void
     {
         $this->usePHP = $enabled;
-        $this->useENV = (($enabled === true) ? false : true);
+        $this->useENV = !$enabled;
     }
 
     /**
-     * Reset ENV variables
+     * Reset all environment variables to the initial state.
      *
      * @return void
      */
-    public function reset():void
+    public function reset(): void
     {
         $this->clear();
-        if($this->useENV){
+        if ($this->useENV) {
             $_ENV = $this->variables;
-            $this->variables = [];
         }
     }
 
     /**
-     * Destructor on close
-     * 
-     * Reset ENV variables.
+     * Destructor to reset environment variables.
      */
     public function __destruct()
     {

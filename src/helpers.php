@@ -95,6 +95,113 @@ function array_get(array $array, string $key, $default = null): mixed
     return $array;
 }
 
+/**
+ * Essence Directive Presets
+ *
+ * @param string $name the name of the preset.
+ * @return array The preset array
+ */
+function engine_load_directive(string $name):array
+{
+    $name = strtolower(trim($name));
+    $name = (CFG_ENGINE_PATH . "$name.cfg.php");
+    echo '<pre>';
+    print_r($name);
+    echo '</pre>';
+    exit;
+    if(!is_file(CONFIG_PATH . "/engine/presets/$name.presets.php")){
+        $name = 'default';
+    }
+    return require(CONFIG_PATH . "/engine/presets/$name.presets.php");
+}
+
+
+/**
+ * Sanitize and set PHP ini configurations for memory-related limits.
+ *
+ * This function validates and formats the value for `memory_limit`, 
+ * `upload_max_filesize`, and `post_max_size` to ensure compatibility 
+ * with PHP's ini settings.
+ *
+ * @param string $key   The ini configuration key to set.
+ * @param string $value The value to sanitize and set for the ini configuration.
+ * @return bool         True if successfully set, false otherwise.
+ */
+function set_php_ini_mem(string $key, string $value): bool
+{
+    // Define allowed configuration keys
+    $allowedKeys = ['memory_limit', 'upload_max_filesize', 'post_max_size'];
+
+    // Only proceed if the key is allowed
+    if (!in_array($key, $allowedKeys)) {
+        return false;
+    }
+
+    // Extract numeric value
+    $numericValue = (float) filter_var($value, FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
+
+    // Extract and normalize unit
+    $unit = strtoupper(preg_replace('/[0-9.]/', '', $value)) ?: 'M';
+
+    // Validate unit and convert if necessary
+    if (!in_array($unit, ['M', 'K', 'G'])) {
+        $unit = 'M'; // Default to MB if an invalid unit is provided
+    }
+
+    // Rebuild value with validated unit
+    $formattedValue = $numericValue . $unit;
+
+    // Set the ini configuration value
+    return ini_set($key, $formattedValue) !== false;
+}
+
+/**
+ * Sanitize and set PHP ini configurations for numeric limits.
+ *
+ * This function validates and formats the value for numeric ini 
+ * settings like `max_execution_time`, `max_input_time`, and 
+ * `max_input_vars` to ensure compatibility with PHP's ini settings.
+ * 
+ * ```
+ * max_input_time: limits the amount of time, in seconds, that PHP 
+ *                 will spend parsing input data... (e.g., POST, GET, 
+ *                 and COOKIE data). This setting helps prevent PHP 
+ *                 from hanging while processing large amounts of 
+ *                 input data, such as when users submit large forms 
+ *                 or upload many files.
+ *
+ * max_input_vars: limits the maximum number of input variables allowed 
+ *                 per request (across GET, POST, and COOKIE data). 
+ *                 This setting is a security measure to prevent PHP 
+ *                 from being overwhelmed by excessive input variables, 
+ *                 which could lead to memory exhaustion or 
+ *                 denial-of-service attacks.
+ * 
+ * ```
+ * @param string $key   The ini configuration key to set.
+ * @param mixed $value  The value to sanitize and set for the ini config.
+ * @return bool         True if successfully set, false otherwise.
+ */
+function set_php_ini_num(string $key, mixed $value): bool
+{
+    // Define allowed configuration keys
+    $allowedKeys = ['max_execution_time', 'max_input_time', 'max_input_vars'];
+
+    // Only proceed if the key is allowed
+    if (!in_array($key, $allowedKeys)) {
+        return false;
+    }
+
+    // Ensure the value is numeric and is an integer
+    $numericValue = filter_var($value, FILTER_VALIDATE_INT);
+    if ($numericValue === false) {
+        return false;
+    }
+
+    // Set the ini configuration value
+    return ini_set($key, (string) $numericValue) !== false;
+}
+
 
 
 

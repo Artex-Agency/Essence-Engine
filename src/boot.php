@@ -67,18 +67,22 @@ $container = ServiceContainer::getInstance();
 // Add autoload to the services.
 $container->set('autoload', $Autoload);
 
-
-
-
 echo '<h1>Essence Boot</h1>';
 echo '<p>&rarr; ' . ENGINE_NAME . '</p>';
 echo '<p>&rarr; ' . ENGINE_PACKAGE . '</p>';
 echo '<p>&rarr; ' . ENGINE_VERSION . '</p>';
 echo '<p>&rarr; ' . ENGINE_WEBSITE . '</p>';
 echo '<p>&rarr; ' . ENGINE_NAMESPACE . '</p>';
+echo '<hr>';
+echo '<p>CFG_ENGINE_PATH: ' . CFG_ENGINE_PATH . '</p>';
 
 
-$Runtime = new Runtime((ROOT_PATH . '.env'));
+
+$Runtime = new Runtime(APP_ENV_FILE);
+
+//$Runtime->configure(CFG_ENGINE_PATH . 'server.cfg.php');
+
+engine_load_directive('server');
 
 exit(0);
 

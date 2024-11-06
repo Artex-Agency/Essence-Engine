@@ -16,6 +16,8 @@ declare(strict_types=1);
 
 namespace Artex\Essence\Engine\Bootstrap;
 
+use \Artex\Essence\Engine\Bootstrap\Exceptions\BootstrapException;
+
 
 /**
  * Bootstrap
@@ -59,17 +61,13 @@ class Bootstrap
     protected int $state = self::LOADING;
 
     /** @var boolean $enabled Bootstrap toggle to enable/disable the process. */
-    protected int $enabled = true;
+    protected bool $enabled = true;
+
+    /** @var array|null $bootRegistry A list of registered bootstrap loaders. */
+    protected array|null $bootRegistry = [];
 
     /**
-     * Undocumented variable
-     *
-     * @var array
-     */
-    protected array $bootstrappers = [];
-
-    /**
-     * Undocumented variable
+     * System Runtime object
      *
      * @var ?Runtime
      */
@@ -134,17 +132,16 @@ class Bootstrap
 
 
     /**
-     * Add a custom bootstrap extension
+     * Register a custom bootstrap loader
      * 
-     * Adds a custom bootstrap extension class to the bootstrap loading 
-     * protocol. 
+     * Adds a custom bootstrap class to the bootstrap loader registry. 
      *
      * @param BootstrapInterface $bootstrap Custom bootstrap class.
      * @param mixed ...$args Optional class constructor arguments.
      * @return boolean True if class is valid, and bootstrap state is
      *                 ready; false otherwise.]
      */
-    public function add(BootstrapInterface|string $bootstrap, ...$args): bool
+    public function register(BootstrapInterface|string $bootstrap, ...$args): bool
     {
         // Check if the system is ready
         if (!$this->isReady()) {
@@ -154,13 +151,13 @@ class Bootstrap
         // Check if $bootstrap is an instance or class name
         if ($bootstrap instanceof BootstrapInterface) {
             // Already an instance
-            $this->bootstrappers[] = $bootstrap;
+            $this->bootRegistry[] = $bootstrap;
             return true;
         }
 
         if (is_string($bootstrap) && class_exists($bootstrap)) {
             // Instantiate with provided arguments
-            $this->bootstrappers[] = new $bootstrap(...$args);
+            $this->bootRegistry[] = new $bootstrap(...$args);
             return true;
         }
 
@@ -185,8 +182,15 @@ class Bootstrap
         // Set loaded state.
         $this->seLoaded();
 
-        // Loop through bootstrappers with exception handling
-        foreach ($this->bootstrappers as $bootstrap) {
+        // Loop through the boot registry collection 
+        foreach ($this->bootRegistry as $bootstrap) {
+
+            // Abort if disabled
+            if (!$this->enabled) {
+                break; // Stop the loop if not enabled
+            }
+
+            // Process bootstrap loader extensions
             try {
                 $bootstrap->load();
                 $bootstrap->loaded();
@@ -194,6 +198,8 @@ class Bootstrap
                 // Do custom error exception here..
             }
         }
+
+        $this->$bootRegistry = null;
     }
 
 
@@ -209,6 +215,19 @@ class Bootstrap
     public function isReady(): bool
     {
         return (($this->hasStarted() && $this->isLoading() && $this->enabled) ? true : false);
+    }
+
+    /**
+     * Stop bootstrap
+     *
+     * Stops the bootstrap process and completes the state.
+     * 
+     * @return void
+     */
+    public function stop(): void
+    {
+        $this->enabled = false;
+        $this->setComplete();
     }
 
     /**
@@ -236,18 +255,6 @@ class Bootstrap
         return $this->state;
     }
 
-    /**
-     * Stop bootstrap
-     *
-     * Stops the bootstrap process and completes the state.
-     * 
-     * @return void
-     */
-    public function stop(): void
-    {
-        $this->$this->enabled = false;
-        $this->setComplete();
-    }
 
 
 
@@ -273,7 +280,7 @@ class Bootstrap
     public function bootSystem(): bool
     {
         if($this->isReady() && ($this->state === self::STARTED)){
-            $this->bootstrappers[] = new $bootstrap($args);
+            $this->bootRegistry[] = new $bootstrap($args);
             return true;
         }
         return false;
@@ -415,6 +422,6 @@ class Bootstrap
     protected function reset(): void
     {
         $this->state = 0;
-        $this->bootstrappers = [];
+        $this->bootRegistry = [];
     }
 }
