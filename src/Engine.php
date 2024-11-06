@@ -16,6 +16,10 @@ declare(strict_types=1);
 
 namespace Artex\Essence\Engine;
 
+use \Artex\Essence\Engine\System\Runtime;
+use \Artex\Essence\Engine\Bootstrap\Bootstrap;
+use \Artex\Essence\Engine\Components\ServiceContainer;
+
 class Engine
 {
 
@@ -24,19 +28,26 @@ class Engine
     const WEBSITE = 'https://artexessence.com/engine/';
 
 
-    private ?ServiceContainer $Container = null;
+    private ?ServiceContainer $container = null;
 
+    private ?Runtime $Runtime = null;
 
-    public function __construct(?ServiceContainer $Container)
+    public function __construct()
     {
         echo '<h2>ESSENCE ENGINE: ENGINE</h2>';
 
 
-        // Set container
-        $this->Container = $Container;
+
+        // Initialize the ServiceContainer singleton instance
+        $this->container = ServiceContainer::getInstance();
 
         // Add bootstrap to the services.
-        $container->set('bootstrap', new Bootstrap());
+        $this->container->set('bootstrap', new Bootstrap());
+
+
+        // Set Runtime Variable
+        $this->Runtime = $this->container->get('runtime');
+
 
     }
 

@@ -58,7 +58,7 @@ class Bootstrap
     const BOOTED =  6;
 
     /** @var integer $state The current state of the bootstrap process. */
-    protected int $state = self::LOADING;
+    protected int $state = self::ONLOAD;
 
     /** @var boolean $enabled Bootstrap toggle to enable/disable the process. */
     protected bool $enabled = true;
@@ -86,7 +86,7 @@ class Bootstrap
         $this->Runtime = (($Runtime) ? $Runtime : null);
 
         // Advance the state.
-        $this->state = $this->setNext();
+        $this->nextState();
     }
 
 
@@ -94,12 +94,13 @@ class Bootstrap
     {
         // If runtime missing, advance state and abort.
         if(!$this->Runtime){
-            $this->setNext();
+            $this->nextState();
             return false;
         }
 
         // TODO: DO RUNTIME SHIT HERE.
 
+        $this->Runtime->configure();
 /*
         // Configure Runtime
         if(!$this->Runtime->configure()){
@@ -123,7 +124,7 @@ class Bootstrap
         $this->Runtime->onLoad();
 
         // Advance the state.
-        $this->setNext();
+        $this->nextState();
     }
 
 
@@ -170,6 +171,8 @@ class Bootstrap
      *
      * Runs the bootstrap loading process.
      * 
+     * @throws BootstrapException Throws an exception in the event of 
+     * critical failure from running the bootloader registry.
      * @return void
      */
     public function run(): void
@@ -195,7 +198,7 @@ class Bootstrap
                 $bootstrap->load();
                 $bootstrap->loaded();
             } catch (\Throwable $e) {
-                // Do custom error exception here..
+                throw new BootstrapException('Bootstrap registry failure');
             }
         }
 
@@ -328,10 +331,7 @@ class Bootstrap
      */
     protected function nextState(): void
     {
-        if(!$this->hasBooted()){
-            $this->state++;
-            $this->onBooted();
-        }
+        $this->state++;
     }
 
     /**

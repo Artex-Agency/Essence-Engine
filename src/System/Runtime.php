@@ -47,6 +47,7 @@ class Runtime
 
     protected bool $errored  = false;
 
+    // States
     protected bool $loaded  = false;
     protected bool $booted  = false;
     protected bool $output  = false;
@@ -71,61 +72,31 @@ class Runtime
  // Runtime Process
  // #######################################
 
+
+    /**
+     * Runtime config
+     *
+     * @return void
+     */
     public function configure()
     {
-
         /** @var string ESS_CHARSET The default character set. Default: `UTF-8` */
         define('ESS_CHARSET', $this->Variables->get('APP_CHARSET', 'UTF-8'));
-        ini_set('default_charset', ESS_CHARSET);
+        set_php_ini('default_charset', ESS_CHARSET);
 
-        /** @var string ESS_TIMEZONE The application default timezone. Default: `America/New_York` */
-        define('ESS_TIMEZONE', $this->Variables->get('APP_TIMEZONE', 'America/New_York'));
-        date_default_timezone_set(ESS_TIMEZONE);
+        // Set timezone
+        setTimeZone($this->Variables->get('APP_TIMEZONE', 'America/New_York'));
 
-        // PHP
-        ini_set('max_execution_time', $Config('MAX_EXECUTION_TIME', '36') );
-
-        // PHP upload max filesize
-        set_php_ini_mem('upload_max_filesize', '2M');
-
-        // PHP post max size
-        set_php_ini_mem('post_max_size', '2M');
-
-        // PHP memory limit
-        set_php_ini_mem('memory_limit', '2M');
-
-        $this->Variables->get('APP_CHARSET', 'UTF-8');
-
-
-        $this->Variables->get('APP_TIMEZONE', 'America/New_York');
-
-        $this->Variables->get('APP_CHARSET', 'UTF-8');
-        
-        
-// Set timezone
-    setTimeZone( $Config('TIMEZONE', 'America/New_York') );
-
-
-
-// Set the maximum script execution time
-    ini_set('max_execution_time', $Config('MAX_EXECUTION_TIME', '36') );
-
-// Set the maximum upload filesize
-    ini_set('upload_max_filesize', 
-        formatConfigMB( $Config('MAX_UPLOAD_SIZE', '2M'))
-    );
-
-// Set the max size for a post
-    ini_set('post_max_size', 
-        formatConfigMB( $Config('MAX_POST_SIZE', '2M') )
-    );
-
-// Set the maximum memory limit
-    ini_set('memory_limit', 
-        formatConfigMB( $Config('MAX_MEMORY_LIMIT', '2M') )
-    );
-
+        // Load server config
+        $directives = engine_load_directive('server');
+        foreach($directives as $key => $val){
+            set_php_ini($key, $val);
+        }
+        unset($directives, $key, $val);
     }
+
+
+
 
 
  // Runtime Process
