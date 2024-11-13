@@ -23,6 +23,48 @@
  * @copyright  © 2024 Artex Agency Inc.
  */
 declare(strict_types=1);
+/*
+use \date;
+use \trim;
+use \getenv;
+use \substr;
+use \explode;
+use \ini_set;
+use \is_file;
+use \in_array;
+use \Throwable;
+use \filter_var;
+use \strtolower;
+use \strtoupper;
+use \unserialize;
+use \preg_replace;
+use \array_key_exists;
+use \file_put_contents;
+use \date_default_timezone_get;
+use \date_default_timezone_set;
+*/
+
+/**
+ * Checks if string is serialized
+ *
+ * @param  string  $data The string to check if serialized.
+ * @return boolean True if the string is serialized; otherwise false.
+ */
+function is_serialized(string $data): bool 
+{
+    $data = trim($data);
+    if (in_array(substr($data, 0, 2), ['a:', 's:', 'i:', 'd:', 'b:', 'O:'])) {
+        try {
+            $unserialized = unserialize($data);
+            if ($unserialized !== false || $data === 'b:0;') {
+                return true;
+            }
+        } catch (\Throwable $e) {
+            return false;
+        }
+    }
+    return false;
+}
 
 
 /**
@@ -53,6 +95,8 @@ function array_get(array $array, string $key, $default = null): mixed
 
 
 
+
+
 /**
  * Write a log entry to the specified log file.
  *
@@ -69,6 +113,9 @@ function log_message(string $message, string $level = 'info', ?string $file = nu
 
     file_put_contents($file, $formattedMessage, FILE_APPEND | LOCK_EX);
 }
+
+
+
 
 /**
  * Get an environment variable, with an optional default if not set.
@@ -123,7 +170,6 @@ function engine_load_directive(string $name):array
     }
     return require($name);
 }
-
 
 
 
@@ -288,6 +334,8 @@ function set_php_ini_num(string $key, mixed $value): bool
 
 
 
+
+
 /*
 
 #### DEBUG OUTPUT ##################################################### */
@@ -306,12 +354,12 @@ function pp(...$vars): void
     <style>
         body { font-family: Helvetica, Arial, sans-serif; background-color: #f5f5f5; color: #333; }
         pre { white-space: pre-wrap; word-wrap: break-word; }
-        .ess-debug-box { background-color: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 18px; margin: 18px; }
+        .ess-debug-box { background-color: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 18px; margin: 18px; box-shadow: 0 3px 6px -3px rgba(0, 0, 0, 0.18); }
         .ess-debug-code { background-color: #f7f7f9; padding: 10px; border-radius: 5px; }
         .ess-debug-head { width: 100%; height: auto; padding: 9px; display: flex; flex-direction: row; justify-content: flex-start; align-items: center; text-align: center; }
-        .ess-debug-title { font-family: "Oswald", sans-serif; font-size: 18px; font-weight: 400; text-transform: uppercase; color: #c720fa; letter-spacing: 1px; }
+        .ess-debug-title { font-family: "Oswald", sans-serif; font-size: 18px; font-weight: 400; text-transform: uppercase; color: #cfd5e6; letter-spacing: 1px; }
         .ess-debug-title > span{ font-weight: 500; }
-        .ess-debug-logo{ width: 23px; height: 23px; margin: 0; margin-right: 15px; fill: #e5d1e6; }
+        .ess-debug-logo{ width: 23px; height: 23px; margin: 0; margin-right: 15px; fill: #eaedff; }
     </style>';
     
     foreach ($vars as $var) {

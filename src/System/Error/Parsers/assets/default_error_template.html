@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error Occurred</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1 { color: #b00; }
+        .trace { font-size: 0.9em; color: #555; }
+    </style>
+</head>
+<body>
+    <h1>An error occurred</h1>
+    <p><strong>Error:</strong> {{errorMessage}}</p>
+    <p><strong>File:</strong> {{errorFile}}</p>
+    <p><strong>Line:</strong> {{errorLine}}</p>
+    <div class="trace">
+        <h3>Trace:</h3>
+        <pre>{{errorTrace}}</pre>
+    </div>
+</body>
+</html>

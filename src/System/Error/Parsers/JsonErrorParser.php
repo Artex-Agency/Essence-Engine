@@ -14,29 +14,28 @@
  */
 declare(strict_types=1);
 
-namespace Artex\Essence\Engine\Bootstrap;
+namespace Artex\Essence\Engine\System\Error\Parsers;
+
+use Throwable;
 
 /**
- * Bootstrap Interface
+ * JSON Error Parser
  *
- * Description
- * 
- * @package    Artex\Essence\Engine\Bootstrap
- * @category   Bootstrap
- * @access     public
- * @version    1.0.0
- * @author     James Gober <james@jamesgober.com>
+ * @package    Artex\Essence\Engine\System\Error\Parsers
+ * @category   Error Management
+ * @version    1.0.1
  * @since      1.0.0
- * @link       https://artexessence.com/core/ Project Website
- * @license    Artex Permissive Software License (APSL)
- * @copyright  © 2024 Artex Agency Inc.
+ * @access     public
  */
-interface Bootstrapper
+class JsonErrorParser implements ErrorParserInterface
 {
-
-    public function load():void;
-    public function load():void;
-    public function booted():void;
-
-
+    public function parse(Throwable $exception): string
+    {
+        return json_encode([
+            'error' => $exception->getMessage(),
+            'file' => $exception->getFile(),
+            'line' => $exception->getLine(),
+            'trace' => $exception->getTrace()
+        ]);
+    }
 }

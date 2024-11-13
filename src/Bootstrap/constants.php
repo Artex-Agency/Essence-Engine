@@ -23,62 +23,6 @@
  */
 declare(strict_types=1);
 
-// Primary Constants
-
-/** 
- * The framework engine name. 
- * @var string ENGINE_NAME 
- */
-defined('ENGINE_NAME') || define('ENGINE_NAME', 'Essence Engine');
-
-/** 
- * The framework engine package name. 
- * @var string ENGINE_PACKAGE
- */
-defined('ENGINE_PACKAGE') || define('ENGINE_PACKAGE', 'Artex Essence Engine');
-
-/** 
- * The framework engine website. 
- * @var string ENGINE_WEBSITE
- */
-defined('ENGINE_WEBSITE') || define('ENGINE_WEBSITE', 'https://artexessence.com/engine/');
-
-/** 
- * The framework engine namespace. 
- * @var string ENGINE_NAMESPACE
- */
-defined('ENGINE_NAMESPACE') || define('ENGINE_NAMESPACE', '\Artex\Essence\Engine');
-
-/** 
- * The framework engine base version. 
- * @var string ENGINE_BASE_VERSION 
- */
-defined('ENGINE_BASE_VERSION') || define('ENGINE_BASE_VERSION', '1.0.0');
-
-/** 
- * The framework engine version stability. 
- * @var string ENGINE_STABILITY 
- */
-defined('ENGINE_STABILITY') || define('ENGINE_STABILITY', 'dev');
-
-// Get current version data
-$version_file = ENGINE_ROOT . 'VERSIONS';
-if(!is_file($version_file) || !$version_data = file_get_contents($version_file)){
-   $version_data = ENGINE_BASE_VERSION;
-}
-
-/** 
- * The framework engine version. 
- * @var string ENGINE_VERSION 
- */
-defined('ENGINE_VERSION') || define('ENGINE_VERSION', $version_data);
-
-// Clean up
-unset($version_file, $version_data);
-
-
-// Shortcuts for PHP constants
-
 /** 
  * Directory Separator, shorthand for PHP `DIRECTORY_SEPARATOR`. 
  * @var string DS 
@@ -104,33 +48,39 @@ defined('NL') || define('NL', PHP_EOL);
 defined('BS') || define('BS', '\\');
 
 
-// Compatibility
+// STORAGE PATHS
+// -------------------------------------------------------------------------
+/** @var string CACHE_PATH The cache storage path. */
+defined('CACHE_PATH') || define('CACHE_PATH',  STORAGE_PATH . 'cache' . '/');
 
-/** 
- * The minimum PHP version required to run this software.
- * @var string ESS_PHP_MIN 
- */
-define('ESS_PHP_MIN', '8.1');
+/** @var string DAT_PATH Data storage path. */
+defined('DAT_PATH')   || define('DAT_PATH',    STORAGE_PATH . 'dat'  . '/');
 
-/** 
- * The maximum supported PHP version. 
- * Typically left blank to accommodate future versions.
- * @var string ESS_PHP_MAX 
- */
-define('ESS_PHP_MAX', '');
+/** @var string LOGS_PATH The storage path for logs. */
+defined('LOGS_PATH')  || define('LOGS_PATH',   STORAGE_PATH . 'logs' . '/');
 
-/** 
- * The recommended PHP version for best performance and compatibility.
- * @var string ESS_PHP_BEST 
- */
-define('ESS_PHP_BEST', '8.2');
+/** @var string FILES_PATH The app uploads path. */
+defined('FILES_PATH') || define('FILES_PATH',  STORAGE_PATH . 'files' . '/');
 
+/** @var string STUBS_PATH Stubs storage path. */
+defined('STUBS_PATH') || define('STUBS_PATH',  STORAGE_PATH . 'stubs' . '/');
 
+/** @var string TMP_PATH Temp storage path. */
+defined('TMP_PATH')   || define('TMP_PATH',    STORAGE_PATH . 'tmp'  . '/');
 
-// CONFIG PATHS
-// ==========================================================================
+/** @var string VAR_PATH Variable storage path. */
+defined('VAR_PATH')   || define('VAR_PATH',    STORAGE_PATH . 'var'  . '/');
+// -------------------------------------------------------------------------
 
-/** @var string CFG_ENGINE_PATH The engine directives configuration path. */
-defined('CFG_ENGINE_PATH') || define('CFG_ENGINE_PATH', CONFIG_PATH . 'engine'  . '/');
-
-// ==========================================================================
+/** @var array ESS_PATHS The Essence Engine directory path. */
+(defined('ESS_PATHS') OR 
+    define('ESS_PATHS', 
+        [
+            'BOOTSTRAP'  => (ESS_PATH . 'Bootstrap/'),
+            'ENGINE'     => (ESS_PATH . 'Engine/'),
+            'FILESYSTEM' => (ESS_PATH . 'Filesystem/'),
+            'HELPERS'    => (ESS_PATH . 'Helpers/')
+        ]
+    )
+);
+// -------------------------------------------------------------------------

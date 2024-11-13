@@ -16,13 +16,26 @@ declare(strict_types=1);
 
 namespace Artex\Essence\Engine\Bootstrap;
 
+use \Artex\Essence\Engine\Registry;
+use \Artex\Essence\Engine\System\Runtime;
+use \Artex\Essence\Engine\System\Server\OS;
+use \Artex\Essence\Engine\Bootstrap\BootStates;
+use \Artex\Essence\Engine\System\Environment\Env;
+use \Artex\Essence\Engine\System\Server\Software;
+use \Artex\Essence\Engine\System\Environment\Gateway;
+use \Artex\Essence\Engine\Components\ServiceContainer;
+
+use \Artex\Essence\Engine\System\Environment\Environment;
+
 use \Artex\Essence\Engine\Bootstrap\Exceptions\BootstrapException;
 
-
 /**
- * Bootstrap
+ * Bootstrap manager for initializing application components.
  *
- * Description
+ * The Bootstrap class handles the registration and execution of 
+ * bootstrapper classes, supporting prioritized loading, grouped 
+ * bootstrapping, deferred bootstrapping, and error handling to 
+ * ensure a resilient initialization process.
  * 
  * @package    Artex\Essence\Engine\Bootstrap
  * @category   Bootstrap
@@ -32,396 +45,70 @@ use \Artex\Essence\Engine\Bootstrap\Exceptions\BootstrapException;
  * @since      1.0.0
  * @link       https://artexessence.com/core/ Project Website
  * @license    Artex Permissive Software License (APSL)
- * @copyright  © 2024 Artex Agency Inc.
+ * @copyright  2024 Artex Agency Inc.
  */
 class Bootstrap
-{
-    /** @var integer ONLOAD [FLAG] The pre-boot initial loading state. */
-    const ONLOAD = 0;
-
-    /** @var integer SYSTEM [FLAG] The system environment and runtime boot state. */
-    const SYSTEM = 1;
-
-    /** @var integer CONFIG [FLAG] The system configuration state. */
-    const CONFIG = 2;
-
-    /** @var integer LOADER [FLAG] The application framework loading state. */
-    const LOADER = 3;
-
-    /** @var integer EXTEND [FLAG] The extended bootstrap collection state. */
-    const EXTEND = 4;
-
-    /** @var integer LOADED [FLAG] The bootstrap load state. */
-    const LOADED = 5;
-
-    /** @var integer BOOTED [FLAG] The bootstrap completed state. */
-    const BOOTED =  6;
-
-    /** @var integer $state The current state of the bootstrap process. */
-    protected int $state = self::ONLOAD;
-
-    /** @var boolean $enabled Bootstrap toggle to enable/disable the process. */
-    protected bool $enabled = true;
-
-    /** @var array|null $bootRegistry A list of registered bootstrap loaders. */
-    protected array|null $bootRegistry = [];
-
-    /**
-     * System Runtime object
-     *
-     * @var ?Runtime
-     */
-    protected ?Runtime $Runtime = null;
+{ 
+    /** @var array $registry An array of registered application bootsteap loaders. */
+    protected array $registry = [];
 
 
     /**
      * Constructor
      */
-    public function __construct(?Runtime $Runtime=null)
+    public function __construct()
     {
-        echo '<h2>ESSENCE ENGINE: BOOTSTRAP</h2>';
+        // Start system runtime
+        Registry::set('runtime', 
+            new Runtime(
+                defined('APP_ENV_VARS') ? APP_ENV_VARS : (ROOT_PATH . '.env')
+            )
+        );
+
+        pp(
+            [
+                'OS Type' => php_uname('s'),
+                'Version Info' => php_uname('v'),
+                'Release Version' => php_uname('r'),
+                'Host Name' => php_uname('n'),
+                'CPU Type' => php_uname('m'),
+            ]
+        );
 
 
-        // Set runtime
-        $this->Runtime = (($Runtime) ? $Runtime : null);
-
-        // Advance the state.
-        $this->nextState();
-    }
-
-
-    public function loadSystem(): bool
-    {
-        // If runtime missing, advance state and abort.
-        if(!$this->Runtime){
-            $this->nextState();
-            return false;
-        }
-
-        // TODO: DO RUNTIME SHIT HERE.
-
-        $this->Runtime->configure();
 /*
-        // Configure Runtime
-        if(!$this->Runtime->configure()){
-            return false;
-        }
+        $OS = new OS();
+        $Software = new Software();
+        pp([
+            'OS TYPE'  => $OS->getType(),
+            'OS Dist'  => $OS->getDistro(),
+            'SOFTWARE' => $Software->get(),
+        ]);
+*/  
+        // Set runtime
+        //$this->Runtime = (($Runtime) ? $Runtime : null);
 
-        // Load Environment
-        if(!$this->Runtime->loadEnvironment()){
-            return false;
-        }
-
-        // Load Environment
-        if(!$this->Runtime->loadEnvironment()){
-            return false;
-        }
-            
-            $this->Runtime->loadEnvironment();
-*/
-
-        // Trigger runtime load event
-        $this->Runtime->onLoad();
-
-        // Advance the state.
-        $this->nextState();
     }
 
 
 
-
-
-
-    /**
-     * Register a custom bootstrap loader
-     * 
-     * Adds a custom bootstrap class to the bootstrap loader registry. 
-     *
-     * @param BootstrapInterface $bootstrap Custom bootstrap class.
-     * @param mixed ...$args Optional class constructor arguments.
-     * @return boolean True if class is valid, and bootstrap state is
-     *                 ready; false otherwise.]
-     */
-    public function register(BootstrapInterface|string $bootstrap, ...$args): bool
+    protected function execute(): bool
     {
-        // Check if the system is ready
-        if (!$this->isReady()) {
-            return false;
-        }
+
+    }
+
+
+    protected function loadServices(): bool
+    {
+
+
     
-        // Check if $bootstrap is an instance or class name
-        if ($bootstrap instanceof BootstrapInterface) {
-            // Already an instance
-            $this->bootRegistry[] = $bootstrap;
-            return true;
-        }
-
-        if (is_string($bootstrap) && class_exists($bootstrap)) {
-            // Instantiate with provided arguments
-            $this->bootRegistry[] = new $bootstrap(...$args);
-            return true;
-        }
-
-        // Invalid class
-        return false;        
     }
 
-    /**
-     * Run bootstrap
-     *
-     * Runs the bootstrap loading process.
-     * 
-     * @throws BootstrapException Throws an exception in the event of 
-     * critical failure from running the bootloader registry.
-     * @return void
-     */
-    public function run(): void
-    {
-        // Check ready state
-        if(!$this->isReady()){
-            return;
-        }
-
-        // Set loaded state.
-        $this->seLoaded();
-
-        // Loop through the boot registry collection 
-        foreach ($this->bootRegistry as $bootstrap) {
-
-            // Abort if disabled
-            if (!$this->enabled) {
-                break; // Stop the loop if not enabled
-            }
-
-            // Process bootstrap loader extensions
-            try {
-                $bootstrap->load();
-                $bootstrap->loaded();
-            } catch (\Throwable $e) {
-                throw new BootstrapException('Bootstrap registry failure');
-            }
-        }
-
-        $this->$bootRegistry = null;
-    }
-
-
-
-    /**
-     * Checks if bootstrap is ready
-     *
-     * Checks if bootstrap is active, and is currently listening for 
-     * custom bootstraps extension files.
-     * 
-     * @return boolean True if bootstrap is ready; otherwise false.
-     */
-    public function isReady(): bool
-    {
-        return (($this->hasStarted() && $this->isLoading() && $this->enabled) ? true : false);
-    }
-
-    /**
-     * Stop bootstrap
-     *
-     * Stops the bootstrap process and completes the state.
-     * 
-     * @return void
-     */
-    public function stop(): void
-    {
-        $this->enabled = false;
-        $this->setComplete();
-    }
-
-    /**
-     * Checks if bootstrap is complete
-     *
-     * Checks if the bootstrap process has been completed.
-     * 
-     * @return boolean True if the bootstrap process has been completed; 
-     *                 otherwise false.
-     */
-    public function isComplete(): bool
-    {
-        return $this->hasBooted();
-    }
-
-    /**
-     * Get bootstrap state
-     *
-     * Gets the current bootstrap state.
-     * 
-     * @return integer The current bootstrap numeric state.
-     */
-    public function getState(): int
-    {
-        return $this->state;
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    /**
-     * Undocumented function
-     *
-     * @param BootstrapInterface $bootstrap
-     * @param mixed ...$args
-     * @return boolean
-     */
-    public function bootSystem(): bool
-    {
-        if($this->isReady() && ($this->state === self::STARTED)){
-            $this->bootRegistry[] = new $bootstrap($args);
-            return true;
-        }
-        return false;
-    }
-
-
-
-
-
-
-
-    public function call(callable $callback): bool
+    protected function loadRuntime(): bool
     {
 
-
-
     }
 
 
-
-
-    /**
-     * Advance to the next state
-     *
-     * Increments the current state to move the bootstrapping process 
-     * one step forward towards completion.
-     * 
-     * @return void
-     */
-    protected function onBooted(): void
-    {
-        if($this->hasBooted() && $this->Runtime){
-            $this->Runtime->onBoot();
-            $this->Runtime = null;
-        }
-    }
-
-    /**
-     * Advance to the next state
-     *
-     * Increments the current state to move the bootstrapping process 
-     * one step forward towards completion.
-     * 
-     * @return void
-     */
-    protected function nextState(): void
-    {
-        $this->state++;
-    }
-
-    /**
-     * Set to complete
-     *
-     * Forcefully sets the bootstrap process state to complete.
-     * 
-     * @return void
-     */
-    protected function setComplete(): void
-    {
-        $this->state = self::BOOTED;
-        $this->onBooted();
-    }
-
-    /**
-     * Set to loaded
-     *
-     * Forcefully sets the bootstrap process state to loaded.
-     * 
-     * @return void
-     */
-    protected function seLoaded(): void
-    {
-        $this->state = self::LOADED;
-    }
-
-    /**
-     * Bootstrap has started
-     * 
-     * Checks if the bootstrap process has started.
-     *
-     * @return boolean True if the bootstrap proess has started; 
-     *                 otherwise false.
-     */
-    private function hasStarted(): bool
-    {
-        return $this->state > self::ONLOAD;
-    }
-
-    /**
-     * Bootstrap is loading
-     * 
-     * Checks if the bootstrap process is still loading.
-     *
-     * @return boolean True if the bootstrap process is still loading;
-     *                 otherwise false.
-     */
-    private function isLoading(): bool
-    {
-        return $this->state < self::LOADED;
-    }
-
-    /**
-     * Bootstrap has loaded
-     * 
-     * Checks if the bootstrap process has loaded.
-     *
-     * @return boolean True if the bootstrap process has been loaded;
-     *                 otherwise false.
-     */
-    private function hasLoaded(): bool
-    {
-        return $this->state >= self::LOADED;
-    }
-
-    /**
-     * Bootstrap has booted
-     * 
-     * Checks if the bootstrap process has been completed.
-     *
-     * @return boolean True if the bootstrap process has been completed;
-     *                 otherwise false.
-     */
-    private function hasBooted(): bool
-    {
-        return $this->state >= self::BOOTED;
-    }
-
-    /**
-     * Reset
-     * 
-     * Resets the state and clears the custom bootstrap loader list 
-     * collection.
-     *
-     * @return void
-     */
-    protected function reset(): void
-    {
-        $this->state = 0;
-        $this->bootRegistry = [];
-    }
 }

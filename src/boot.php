@@ -5,94 +5,134 @@
 # |_____|_____|_____|_____|__|╲__|_____|_____|
 # ARTEX ESSENCE ENGINE ⦙⦙⦙⦙⦙ A PHP META-FRAMEWORK
 /**
- * Engine Boot Loader
- * 
- * Description
- *
  * This file is part of the Artex Essence Engine and meta-framework.
- *
+ * 
  * @package    Artex\Essence\Engine
- * @category   Startup
+ * @category   Boot
  * @version    1.0.0
  * @since      1.0.0
  * @author     James Gober <james@jamesgober.com>
  * @link       https://artexessence.com/engine/ Project Website
  * @link       https://artexsoftware.com/ Artex Software
  * @license    Artex Permissive Software License (APSL)
- * @copyright  © 2024 Artex Agency Inc.
+ * @copyright  2024 Artex Agency Inc.
  */
 declare(strict_types=1);
 
-use \Artex\Essence\Engine\System\Environment\Variables;
+namespace Artex\Essence\Engine;
+
+use \rtrim;
+use \define;
+use \defined;
+use \dirname;
+use \PHP_EOL;
+use \require;
+use \class_alias;
+use \PATH_SEPARATOR;
+use \Artex\Essence\Engine\Essence;
+
+use \Artex\Essence\Engine\Services\Cache\CacheFactory;
+use \Artex\Essence\Engine\Services\Cache\Adapters\FileCache;
+
+// ESSENCE PATHS
+// -------------------------------------------------------------------------
+/** @var string ESS_ROOT The Essence Engine directory root path. */
+(defined('ESS_PATH') OR define('ESS_PATH', (rtrim(__DIR__, '/') . '/')));
+
+/** @var string ESS_PATH The Essence Engine directory path. */
+(defined('ESS_ROOT') OR define('ESS_ROOT', (rtrim(dirname(__DIR__), '/') . '/')));
+
+// STORAGE PATHS
+// -------------------------------------------------------------------------
+/** @var string DS Directory Separator, shorthand for PHP `DIRECTORY_SEPARATOR`. */
+defined('DS') || define('DS', '/');
+
+/** @var string PS Path Separator, shorthand for PHP `PATH_SEPARATOR`. */
+defined('PS') || define('PS', PATH_SEPARATOR);
+
+/** @var string NL Newline character, shorthand for PHP `PHP_EOL`. */
+defined('NL') || define('NL', PHP_EOL);
+
+/** @var string BS Backslash character shorthand. */
+defined('BS') || define('BS', '\\');
+
+/** @var string string Shortcode for carriage return. */
+((defined('CRLF')) OR define('CRLF', (chr(13).chr(10))));
 
 
-// Check Engine Root Path
-(defined('ENGINE_ROOT') OR 
-    /** @var string ENGINE_ROOT The engine directory root path. */
-    define('ENGINE_ROOT', rtrim(dirname(__DIR__), '/') . '/')
-);
+// LOAD HELPERS
+// -------------------------------------------------------------------------
+// Load framework helpers
+require(ESS_PATH.'Helpers.php');
 
-// Check Engine Path
-(defined('ENGINE_PATH') OR 
-    /** @var string ENGINE_PATH The engine directory path. */
-    define('ENGINE_PATH', rtrim(__DIR__, '/') . '/')
-);
+//$key_name = 'jg_cache_test_';
+$jg_key = ('jg_cache_test_' . (string)(random_int(1, 9999)) . '_' . (string)(random_int(1, 999)) . '_' . (string)(random_int(1, 6)) . '_' .(string)(random_int(1, 9)));
 
-// Load constants if not already loaded.
-if(!defined('ENGINE_NAMESPACE')){
+echo '<p>'.$jg_key.'</p>';
+if($cache = new FileCache(['cache_dir' => (ROOT_PATH . 'storage/cache/')])){
 
-    // Load constants.
-    require(ENGINE_PATH . 'Bootstrap/constants.php');
+    
 
-    // Load helpers.
-    require(ENGINE_PATH . 'helpers.php');
-
+pp($cache);
+if($cache->set($jg_key, ['name' => 'James Gober', 'test' => 'tbd', 'time' => time()], 0))
+{
+    echo '<p>Cache Saved</p>';
+}
 }
 
-// Load autoloader if not already loaded.
-(class_exists('\Artex\Essence\Engine\Autoload') OR 
-    require(ENGINE_PATH . 'Autoload.php')
-);
-
-// Activate autoloader
-$Autoload = new \Artex\Essence\Engine\Autoload(
-    ENGINE_NAMESPACE, 
-    ENGINE_PATH
-);
-
-// Set Aliases
-class_alias('\Artex\Essence\Engine\Engine', 'Engine');
-class_alias('\Artex\Essence\Engine\System\Runtime', 'Runtime');
-class_alias('\Artex\Essence\Engine\Bootstrap\Bootstrap', 'Bootstrap');
-class_alias('\Artex\Essence\Engine\Components\ServiceContainer', 'ServiceContainer');
-class_alias('\Artex\Essence\Engine\Bootstrap\BootstrapInterface', 'BootstrapInterface');
-
-// Initialize the ServiceContainer singleton instance
-$container = ServiceContainer::getInstance();
-
-// Add autoload to the services.
-$container->set('autoload', $Autoload);
-
-// Add runtime to the services.
-$container->set('runtime', new Runtime(APP_ENV_FILE));
-
-// Start engine
-$Engine = new Engine();
-
-
-echo '<h1>Essence Boot</h1>';
-echo '<p>&rarr; ' . ENGINE_NAME . '</p>';
-echo '<p>&rarr; ' . ENGINE_PACKAGE . '</p>';
-echo '<p>&rarr; ' . ENGINE_VERSION . '</p>';
-echo '<p>&rarr; ' . ENGINE_WEBSITE . '</p>';
-echo '<p>&rarr; ' . ENGINE_NAMESPACE . '</p>';
-echo '<hr>';
-echo '<p>CFG_ENGINE_PATH: ' . CFG_ENGINE_PATH . '</p>';
 
 
 
 
-//$Runtime = new Runtime(APP_ENV_FILE);
 
-//$Runtime->configure(CFG_ENGINE_PATH . 'server.cfg.php');
+/*
+// Get the requested URL without the sub-folder
+$requestUri = ($_SERVER['REQUEST_URI'] ?? '');
+$scriptName = ($_SERVER['SCRIPT_NAME'] ?? '');
 
+echo '<p>REQ: ' . $requestUri . '</p>';
+
+// Remove the sub-folder from the request URI
+if (strpos($requestUri, $scriptName) === 0) {
+    $requestUri = substr($requestUri, strlen($scriptName));
+}$type='rui';
+
+// Extract the query string from REQUEST_URI
+$urlParts = explode('?', $requestUri, 2);
+$requestUrl = $urlParts[0];
+$requestQuery = isset($urlParts[1]) ? $urlParts[1] : '';$type='rqy';
+
+//$requestQuery ='';
+
+// If REQUEST_URI doesn't contain the query string, check QUERY_STRING
+if ((isset($_SERVER['QUERY_STRING'])) && (empty($requestQuery))) { $type='rqy';
+    $requestQuery = $_SERVER['QUERY_STRING'];
+}
+
+//$requestQuery ='';
+
+// If QUERY_STRING is empty, check PATH_INFO
+if ((isset($_SERVER['PATH_INFO'])) && (empty($requestQuery))) {  $type='pin';
+    $requestQuery = $_SERVER['PATH_INFO'];
+}
+
+// Parse the query string into an associative array
+parse_str($requestQuery, $queryParams);
+
+echo "<p>$".$type."</p>";
+
+echo '<pre>';
+print_r($queryParams);
+echo '</pre>';
+
+*/
+
+
+
+
+// LOADING MASTER CLASS
+// -------------------------------------------------------------------------
+class_alias('\Artex\Essence\Engine\Essence', 'Essence');
+
+global $Essence;
+$Essence = Essence::invoke();
