@@ -3,24 +3,27 @@
  # ┊   __┊  ___┊  ___┊   __┊   \  ┊   __┊   __┊
  # ┊   __┊___  ┊___  ┊   __┊  \   ┊  |__|   __┊
  # |_____|_____|_____|_____|__|╲__|_____|_____|
- # ARTEX ESSENCE ENGINE ⦙⦙⦙⦙⦙ A PHP META-FRAMEWORK
+ # ARTEX ESSENCE ⦙⦙⦙⦙ PHP META-FRAMEWORK & ENGINE
 /**
- * This file is part of the Artex Essence Engine Meta-Framework.
- *
- * @link      https://artexessence.com/core/ Artex Software
+ * This file is part of the Artex Essence meta-framework.
+ * 
+ * @link      https://artexessence.com/engine/ Project Website
+ * @link      https://artexsoftware.com/ Artex Software
  * @license   Artex Permissive Software License (APSL)
- * @version   1.0.0
- * @since     1.0.0
- * @package   Artex\Essence\Engine\System\Config\Parsers
- * @category  Configuration
- * @access    public
+ * @copyright 2024 Artex Agency Inc.
  */
 declare(strict_types=1);
 
-namespace Artex\Essence\Engine\System\Config\Parsers;
+namespace Essence\System\Config\Parsers;
 
-use RuntimeException;
-use Artex\Essence\Engine\System\Config\Parsers\ConfigParserInterface;
+use \is_file;
+use \is_readable;
+use \json_decode;
+use \json_last_error;
+use \file_get_contents;
+use \json_last_error_msg;
+use \Essence\System\Config\Exception\ConfigReadException;
+use \Essence\System\Config\Parsers\ConfigParserInterface;
 
 /**
  * JsonConfigParser
@@ -29,9 +32,12 @@ use Artex\Essence\Engine\System\Config\Parsers\ConfigParserInterface;
  * Implements the ConfigParserInterface to convert JSON configuration
  * files into associative arrays for easy access.
  *
- * @package    Artex\Essence\Engine\System\Parsers
+ * @package    Essence\System\Config\Parsers
  * @category   Configuration
+ * @version    1.0.0
+ * @since      1.0.0
  * @access     public
+ * @implements ConfigParserInterface
  */
 class JsonConfigParser implements ConfigParserInterface
 {
@@ -40,23 +46,35 @@ class JsonConfigParser implements ConfigParserInterface
      *
      * @param string $filePath Path to the JSON configuration file.
      * @return array Parsed configuration data as an associative array.
-     * @throws RuntimeException If the file cannot be read, or the JSON data is invalid.
+     * @throws ConfigReadException If the file cannot be read, or the JSON data is invalid.
      */
     public function parse(string $filePath): array
     {
         if (!is_file($filePath) || !is_readable($filePath)) {
-            throw new RuntimeException("Cannot read the JSON file at: $filePath");
+            throw new ConfigReadException([
+                'message' => "Failed to parse JSON file at: $filePath",
+                'file'    => $filePath,
+                'line'    => __LINE__,
+            ]);
         }
 
         $json = file_get_contents($filePath);
         if ($json === false) {
-            throw new RuntimeException("Failed to read JSON data from file: $filePath");
+            throw new ConfigReadException([
+                'message' => "Failed to parse JSON file at: $filePath",
+                'file'    => $filePath,
+                'line'    => __LINE__,
+            ]);
         }
 
         $data = json_decode($json, true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new RuntimeException("JSON decoding error in file $filePath: " . json_last_error_msg());
+            throw new ConfigReadException([
+                'message' => "JSON decoding error in file $filePath: " . json_last_error_msg(),
+                'file'    => $filePath,
+                'line'    => __LINE__,
+            ]);
         }
 
         return $data ?? [];

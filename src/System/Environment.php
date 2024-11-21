@@ -1,213 +1,214 @@
-<?php
+<?php declare(strict_types=1);
  # ¸_____¸_____¸_____¸_____¸__¸ __¸_____¸_____¸
  # ┊   __┊  ___┊  ___┊   __┊   \  ┊   __┊   __┊
  # ┊   __┊___  ┊___  ┊   __┊  \   ┊  |__|   __┊
  # |_____|_____|_____|_____|__|╲__|_____|_____|
- # ARTEX ESSENCE ENGINE ⦙⦙⦙⦙⦙ A PHP META-FRAMEWORK
+ # ARTEX ESSENCE ⦙⦙⦙⦙ PHP META-FRAMEWORK & ENGINE
 /**
- * This file is part of the Artex Essence Core framework.
- *
- * @link      https://artexessence.com/engine/ Project Website
- * @link      https://artexsoftware.com/ Artex Software
- * @license   Artex Permissive Software License (APSL)
+ * Part of the Artex Essence meta-framework.
+ *  
+ * @link      https://artexessence.com/ Project
+ * @license   Artex Permissive Software License
  * @copyright 2024 Artex Agency Inc.
  */
-declare(strict_types=1);
+namespace Essence\System;
 
-namespace Artex\Essence\Engine\System;
-
-use \STDIN;
-use \getenv;
-use \strpos;
-use \is_file;
-use \in_array;
-use \PHP_SAPI;
-use \is_numeric;
-use \strtolower;
-use \posix_isatty;
-use \php_sapi_name;
-use \function_exists;
-use \file_get_contents;
+use RuntimeException;
 
 /**
- * System Environment
+ * Environment
  *
- * Manages the application environment mode, configuration, and options for 
- * the Artex Essence framework and application. Supports multiple modes 
- * (production, development, etc.), configurable storage methods (global or 
- * `putenv`), and SAPI-based interface detection.
- * 
- * ### Core Features:
- * - **Environment Modes**: Supports production, development, sandbox, and staging.
- * - **Configuration Loading**: Load and parse environment variables from `.env` files.
- * - **Options Parsing**: Retrieve configuration settings dynamically with a flexible 
- *   merging strategy for default configurations.
- * - **SAPI Detection**: Detects PHP SAPI type (CLI, HTTP, etc.) and adjusts interface mode.
+ * Provides a static utility for detecting runtime interfaces 
+ * (HTTP, CLI), server details, and managing environment-specific 
+ * configurations.It can also load environment variables for global 
+ * application use.
  *
- * ### Example Usage:
- * ```php
- * $env = new Environment('/path/to/.env', [
- *     'default_mode' => 'development',
- *     'vars_use_putenv' => true
- * ]);
- * 
- * $mode = $env->getMode();
- * $debugMode = $env->getConfig('debug', false);
- * ```
- *
- * @package    Artex\Essence\Engine\System
- * @category   System
- * @access     public
- * @version    1.0.1
+ * @package    Essence\System
+ * @category   Environment
+ * @version    1.1.0
  * @since      1.0.0
- * @link       https://artexessence.com/engine/ Project Website
- * @license    Artex Permissive Software License (APSL)
  */
 class Environment
 {
-    /**
-     * Configuration options for the environment class.
-     *
-     * @var array<string, mixed>
-     */
-    protected array $config = [
-        'vars_use_putenv' => false,
-        'vars_use_global' => true,
-        'default_mode'    => 'production',
-        'staging_mode'    => false,
-        'sandbox_mode'    => false,
-        'testing_mode'    => false,
+    /** @var array<string, mixed> Holds loaded environment variables. */
+    private static array $variables = [];
+
+    /** @var string Detected environment mode. */
+    private static  ?string $mode = null;
+
+    /** @var string|null Detected runtime interface type (e.g., 'http', 'cli'). */
+    private static ?string $interface = null;
+
+    /** @var string|null Cached server software type. */
+    private static ?string $serverSoftware = null;
+
+    /** @var array<string, string> Maps PHP SAPI names to runtime interfaces. */
+    private static array $sapis = [
+        'cli'            => 'cli',
+        'phpdbg'         => 'cli',
+        'fpm-fcgi'       => 'http',
+        'cgi-fcgi'       => 'http',
+        'apache2handler' => 'http',
+        'litespeed'      => 'http',
     ];
 
-    /**
-     * Regex pattern for parsing .env key-value pairs.
-     *
-     * @var string
-     */
-    protected string $regex = '/^(?P<key>[A-Za-z._-]+[A-Za-z0-9]*)\s*[:=]\s*(?P<value>[^\r\n]*)$/m';
-
-    /** @var array<string, string> Maps PHP SAPI names to common interface types. */
-    protected array $sapis = [
-        'cli'            => 'cli',      
-        'phpdbg'         => 'cli',      
-        'embed'          => 'embedded', 
-        'fpm-fcgi'       => 'http',     
-        'cgi-fcgi'       => 'http',     
-        'apache2handler' => 'http',     
-        'litespeed'      => 'http',     
-        'srv'            => 'http',     
+    /** @var array<string, string> Common server software identifiers. */
+    private static array $servers = [
+        'apache'    => 'Apache',
+        'nginx'     => 'Nginx',
+        'iis'       => 'IIS',
+        'litespeed' => 'LiteSpeed',
+        'caddy'     => 'Caddy',
     ];
 
-    /** @var array<string, mixed> Loaded environment variables */
-    private array $variables = [];
-
-    /** @var string Current environment mode */
-    protected string $mode = 'production';
-
-    /** @var string Interface type (e.g., HTTP, CLI) */
-    protected string $interface = 'http';
+    /** @var bool Guard to prevent re-initialization. */
+    private static bool $initialized = false;
 
     /**
-     * Constructor to initialize the environment with configuration and optional .env file.
+     * Initializes the static environment class.
      *
-     * @param string $file   Path to the .env file.
-     * @param array  $config Additional configuration options.
+     * Detects the runtime interface type.
      */
-    public function __construct(string $file = '', array $config = [])
+    public static function init(): void
     {
-        $this->config = array_merge($this->config, $config);
-
-        if ($file) {
-            $this->load($file);
+        if (!self::$initialized) {
+            self::$interface = self::detectInterface();
+            self::$initialized = true;
         }
+        return;
     }
 
     /**
-     * Loads environment variables from a specified .env file.
+     * Detects the runtime interface type (HTTP, CLI, etc.).
      *
-     * @param string $file Path to the .env file.
-     * @return bool True if the file was successfully loaded, false otherwise.
+     * @return string The detected interface type.
      */
-    public function load(string $file): bool
+    private static function detectInterface(): string
     {
-        if (!is_file($file) || !$data = file_get_contents($file)) {
-            return false;
-        }
-        return $this->parseEnvData($data);
+        $sapi = \strtolower(\php_sapi_name());
+        return self::$sapis[$sapi] ?? 'unknown';
     }
 
     /**
-     * Parses and loads environment variables from provided data.
+     * Detects and returns the server software type.
      *
-     * @param string $data Raw content of the .env file.
-     * @return bool True if parsing was successful, false otherwise.
+     * @return string The detected server software type.
      */
-    protected function parseEnvData(string $data): bool
+    public static function getServerSoftware(): string
     {
-        if (!preg_match_all($this->regex, $data, $matches, PREG_SET_ORDER)) {
-            return false;
+        if (self::$serverSoftware === null) {
+            $serverSoftware = \strtolower($_SERVER['SERVER_SOFTWARE'] ?? '');
+            foreach (self::$servers as $key => $name) {
+                if (\strpos($serverSoftware, $key) !== false) {
+                    self::$serverSoftware = $name;
+                    break;
+                }
+            }
+            self::$serverSoftware = self::$serverSoftware ?? 'Unknown';
         }
-        foreach ($matches as $match) {
-            $this->add($match['key'], trim($match['value']));
-        }
-        return true;
+        return self::$serverSoftware;
     }
 
     /**
-     * Adds an environment variable to storage.
+     * Load environment variables from a file.
      *
-     * @param string $key   Environment variable key.
-     * @param mixed  $value Value to set.
+     * @param string $filePath Path to the environment file.
+     * @throws RuntimeException If the file is missing or malformed.
      * @return void
      */
-    public function add(string $key, mixed $value): void
+    public static function loadFromFile(string $filePath): void
     {
-        $value = $this->sanitizeValue($value);
+        if (!\is_file($filePath) || !$data = \file_get_contents($filePath)) {
+            throw new RuntimeException("Environment file not found: {$filePath}");
+        }
 
-        if ($this->config['vars_use_global']) {
-            $_ENV[$key] = $value;
+        $regex = '/^(?P<key>[A-Za-z._-]+[A-Za-z0-9]*)\s*[:=]\s*(?P<value>[^\r\n]*)$/m';
+        if (!\preg_match_all($regex, $data, $matches, \PREG_SET_ORDER)) {
+            throw new RuntimeException("Malformed environment file: {$filePath}");
         }
-        if ($this->config['vars_use_putenv']) {
-            putenv("$key=$value");
+
+        foreach ($matches as $match) {
+            $value = self::resolveNestedVariables(\trim($match['value']));
+            self::set($match['key'], $value);
         }
-        $this->variables[$key] = $value;
     }
 
     /**
-     * Retrieve an environment variable or default value if not set.
+     * Detect the current application environment.
      *
-     * @param  string $key     Variable name.
-     * @param  mixed  $default Default value.
-     * @return mixed
+     * @param string $default The default environment (e.g., 'production').
+     * @return string The detected environment.
      */
-    public function get(string $key, mixed $default = null): mixed
+    public static function detect(): string
     {
-        return $this->variables[$key] ?? $default;
+        if(self::$mode){
+            return self::$mode;
+        }
+        self::$mode = (strtolower(self::get('ENVIRONMENT', 'production')));
+
+        // Map known environments
+        $knownEnvs = ['production', 'development', 'staging', 'testing'];
+        if (in_array(self::$mode, $knownEnvs, true)) {
+            return self::$mode;
+        }
+        self::$mode = (self::$mode ? self::$mode : 'production');
+
+        // Use default as a fallback
+        return self::$mode;
     }
 
     /**
-     * Returns all loaded environment variables.
+     * Retrieve an environment variable by name.
      *
-     * @return array<string, mixed>
+     * @param string $key     The variable name.
+     * @param mixed  $default Default value if variable is not found.
+     * @return mixed The variable's value or the default.
      */
-    public function getAll(): array
+    public static function get(string $key, mixed $default = null): mixed
     {
-        return $this->variables;
+        return self::$variables[$key] ?? \getenv($key) ?: $default;
     }
 
     /**
-     * Sanitizes and converts values to appropriate types.
+     * Sets an environment variable.
      *
-     * @param string $value Raw value.
-     * @return mixed
+     * @param string $key   The variable name.
+     * @param mixed  $value The variable value.
+     * @return void
      */
-    protected function sanitizeValue(string $value): mixed
+    public static function set(string $key, mixed $value): void
     {
-        if (is_numeric($value)) {
-            return strpos($value, '.') !== false ? (float)$value : (int)$value;
+        $value = self::sanitizeValue($value);
+        self::$variables[$key] = $value;
+        \putenv("{$key}={$value}");
+    }
+
+    /**
+     * Resolves nested variables in the format ${VAR}.
+     *
+     * @param string $value The raw value with potential nested variables.
+     * @return string The resolved value.
+     */
+    private static function resolveNestedVariables(string $value): string
+    {
+        return \preg_replace_callback('/\${(\w+)}/', function ($matches) {
+            return self::get($matches[1], '');
+        }, $value);
+    }
+
+    /**
+     * Sanitizes a raw value into an appropriate data type.
+     *
+     * @param string $value The raw value.
+     * @return mixed The sanitized value.
+     */
+    private static function sanitizeValue(string $value): mixed
+    {
+        if (\is_numeric($value)) {
+            return \strpos($value, '.') !== false ? (float)$value : (int)$value;
         }
 
-        $lowerValue = strtolower($value);
+        $lowerValue = \strtolower($value);
         return match ($lowerValue) {
             'true'  => true,
             'false' => false,
@@ -217,150 +218,52 @@ class Environment
     }
 
     /**
-     * Sets the environment mode based on configuration and provided mode.
+     * Checks if a specific environment variable exists.
      *
-     * @param string $mode Mode to set.
+     * @param string $key The variable name to check.
+     * @return bool True if the variable exists, false otherwise.
+     */
+    public static function has(string $key): bool
+    {
+        return isset(self::$variables[$key]) || \getenv($key) !== false;
+    }
+
+    /**
+     * Retrieves all loaded environment variables.
+     *
+     * @return array<string, mixed> An associative array of all environment variables.
+     */
+    public static function getAll(): array
+    {
+        return self::$variables;
+    }
+
+    /**
+     * Clears all loaded environment variables.
+     *
+     * @param bool $clearGlobal Whether to clear global PHP environment variables.
      * @return void
      */
-    protected function setMode(string $mode): void
+    public static function clear(bool $clearGlobal = false): void
     {
-        $normalizedMode = strtolower(trim($mode));
-        
-        $allowedModes = ['production', 'development'];
-        
-        foreach (['staging', 'sandbox', 'testing'] as $optionalMode) {
-            if ($this->config["{$optionalMode}_mode"] === true) {
-                $allowedModes[] = $optionalMode;
+        foreach (self::$variables as $key => $value) {
+            if ($clearGlobal) {
+                \putenv($key);
             }
-        }
-        
-        $this->mode = in_array($normalizedMode, $allowedModes, true) 
-                    ? $normalizedMode 
-                    : $this->config['default_mode'];
-    }
-
-    /**
-     * Gets the current environment mode.
-     *
-     * @return string
-     */
-    public function getMode(): string
-    {
-        return $this->mode;
-    }
-
-    /**
-     * Parses the environment interface type from SAPI or other indicators.
-     *
-     * @return void
-     */
-    public function parseInterface(): void
-    {
-        $sapi = php_sapi_name() ?: PHP_SAPI;
-        $this->interface = $this->sapis[$sapi] ?? 'unknown';
-
-        if ($this->interface === 'cli') {
-            $this->interface = $this->detectShellType();
+            unset(self::$variables[$key]);
         }
     }
 
     /**
-     * Determines specific CLI interface types (daemon, cron, shell).
+     * Gets the current runtime interface.
      *
-     * @return string
+     * @return string The runtime interface type (e.g., 'http', 'cli').
      */
-    protected function detectShellType(): string
+    public static function getInterface(): string
     {
-        $environment = getenv('TERM') ?: '';
-        $interactive = function_exists('posix_isatty') && posix_isatty(STDIN);
-
-        return match (true) {
-            (!$environment && !$interactive) => 'daemon',
-            (!$environment && str_contains(getenv('_') ?? '', 'cron')) => 'cron',
-            (str_contains($environment, 'xterm')) => 'shell',
-            default => 'shell',
-        };
-    }
-
-    /**
-     * Gets the current gateway interface.
-     *
-     * @return string
-     */
-    public function getInterface(): string
-    {
-        return $this->interface;
-    }
-
-    /**
-     * Checks if the interface is HTTP.
-     *
-     * @return bool
-     */
-    public function isHTTP(): bool
-    {
-        return $this->interface === 'http';
-    }
-
-    /**
-     * Checks if the interface is CLI.
-     *
-     * @return bool
-     */
-    public function isCLI(): bool
-    {
-        return $this->interface === 'cli';
-    }
-
-    /**
-     * Determines if the current environment is shell or similar (daemon, cron).
-     *
-     * @return bool True if the interface is shell-based, false otherwise.
-     */
-    public function isShell(): bool
-    {
-        return in_array($this->interface, ['shell', 'daemon', 'cron']);
-    }
-
-    /**
-     * Retrieve a configuration option or default value.
-     *
-     * @param string $key     Config key.
-     * @param mixed  $default Default value.
-     * @return mixed
-     */
-    public function getConfig(string $key, mixed $default = null): mixed
-    {
-        return $this->config[$key] ?? $default;
-    }
-
-    /**
-     * Invoke magic method to get an environment variable by key.
-     *
-     * @param string $key     Variable name.
-     * @param mixed  $default Default value.
-     * @return mixed
-     */
-    public function __invoke(string $key, mixed $default = null): mixed
-    {
-        return $this->get($key, $default);
-    }
-
-    /**
-     * Resets all environment variables added by this loader.
-     *
-     * @return void
-     */
-    public function reset(): void
-    {
-        foreach ($this->variables as $key => $value) {
-            if ($this->config['vars_use_global']) {
-                unset($_ENV[$key]);
-            }
-            if ($this->config['vars_use_putenv']) {
-                putenv($key);
-            }
-        }
-        $this->variables = [];
+        return self::$interface ?? 'unknown';
     }
 }
+
+class_alias('\Essence\System\Environment', 'Environment');
+Environment::init();

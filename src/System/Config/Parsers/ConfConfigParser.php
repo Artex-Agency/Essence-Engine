@@ -3,20 +3,25 @@
  # ┊   __┊  ___┊  ___┊   __┊   \  ┊   __┊   __┊
  # ┊   __┊___  ┊___  ┊   __┊  \   ┊  |__|   __┊
  # |_____|_____|_____|_____|__|╲__|_____|_____|
- # ARTEX ESSENCE ENGINE ⦙⦙⦙⦙⦙ A PHP META-FRAMEWORK
+ # ARTEX ESSENCE ⦙⦙⦙⦙ PHP META-FRAMEWORK & ENGINE
 /**
- * This file is part of the Artex Essence Engine and meta-framework.
- *
- * @link       https://artexessence.com/engine/ Project Website
- * @link       https://artexsoftware.com/ Artex Software
- * @license    Artex Permissive Software License (APSL)
- * @copyright  2024 Artex Agency Inc.
+ * This file is part of the Artex Essence meta-framework.
+ * 
+ * @link      https://artexessence.com/engine/ Project Website
+ * @link      https://artexsoftware.com/ Artex Software
+ * @license   Artex Permissive Software License (APSL)
+ * @copyright 2024 Artex Agency Inc.
  */
 declare(strict_types=1);
 
-namespace Artex\Essence\Engine\System\Config\Parsers;
+namespace Essence\System\Config\Parsers;
 
-use Artex\Essence\Engine\System\Config\Exception\ConfigReadException;
+use \trim;
+use \preg_match_all;
+use \PREG_SET_ORDER;
+use \file_get_contents;
+use \Essence\System\Config\Exception\ConfigReadException;
+use \Essence\System\Config\Parsers\ConfigParserInterface;
 
 /**
  * CONF Config Parser
@@ -26,7 +31,7 @@ use Artex\Essence\Engine\System\Config\Exception\ConfigReadException;
  * This parser reads key-value pairs from custom `.conf` files where each line represents
  * a configuration setting. It handles nested keys and allows flexible key-value separators.
  *
- * @package    Artex\Essence\Engine\System\Config\Parsers
+ * @package    Essence\System\Config\Parsers
  * @category   Configuration
  * @version    1.0.0
  * @since      1.0.0

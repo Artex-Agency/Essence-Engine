@@ -1,20 +1,19 @@
 <?php
-/* ¸_____¸____¸________¸____¸_¸  ¸__¸
-   |  _  |  __ \_    _|   __|  \/  /
-   |     |     / |  | |   __|}    {
-   |__|__|__|__\ |__| |_____|__/\__\
-   ARTEX SOFTWARE :: PHP ESSENTIALS
-*/
+# ¸_____¸_____¸_____¸_____¸__¸ __¸_____¸_____¸
+# ┊   __┊  ___┊  ___┊   __┊   \  ┊   __┊   __┊
+# ┊   __┊___  ┊___  ┊   __┊  \   ┊  |__|   __┊
+# |_____|_____|_____|_____|__|╲__|_____|_____|
+# ARTEX ESSENCE ⦙⦙⦙⦙ PHP META-FRAMEWORK & ENGINE
 /**
- * This file is part of the PHP Essential Library by Artex Software.
- * 
+ * This file is part of the Artex Essence meta-framework.
+ *
+ * @link      https://artexessence.com/engine/ Project Website
  * @link      https://artexsoftware.com/ Artex Software
- * @license   ARTEX OPEN SOURCE LICENSE (AOSL). *Permissive open-source*
- * @copyright © 2024 Artex Agency Inc.
+ * @license   Artex Permissive Software License (APSL)
  */
 declare(strict_types=1);
 
-namespace Artex\Essence\Engine\Utils;
+namespace Essence\Utils;
 
 use \substr;
 use \bin2hex;
@@ -26,14 +25,12 @@ use \random_bytes;
  * 
  * Provides random strings, numbers, and tokens.
  *
- * @package   Ess\Utils
- * @category  Utility
- * @version   1.0.0
- * @since     1.0.0
- * @link      https://artexessence.com/library/ Project
- * @author    James Gober <james@jamesgober.com>
- * @license   ARTEX OPEN SOURCE LICENSE (AOSL). *Permissive open-source*
- * @copyright © 2024 Artex Agency Inc.
+ * @package    Essence\Utils
+ * @category   Utility
+ * @version    1.0.0
+ * @since      1.0.0
+ * @link       https://artexessence.com/core/ Project Website
+ * @license    Artex Permissive Software License (APSL)
  */
 class Random
 {

@@ -1,178 +1,224 @@
-<?php 
- # ¸_____¸_____¸_____¸_____¸__¸ __¸_____¸_____¸
- # ┊   __┊  ___┊  ___┊   __┊   \  ┊   __┊   __┊
- # ┊   __┊___  ┊___  ┊   __┊  \   ┊  |__|   __┊
- # |_____|_____|_____|_____|__|╲__|_____|_____|
- # ARTEX ESSENCE ENGINE ⦙⦙⦙⦙⦙ A PHP META-FRAMEWORK
-/**
- * This file is part of the Artex Essence Engine and meta-framework.
- *
- * @link      https://artexessence.com/engine/ Project Website
- * @link      https://artexsoftware.com/ Artex Software
- * @license   Artex Permissive Software License (APSL)
- * @copyright 2024 Artex Agency Inc.
- */
+<?php
 declare(strict_types=1);
 
-namespace Artex\Essence\Engine\System\Error;
+namespace Essence\System\Error;
 
-use Throwable;
-use Psr\Log\LoggerInterface;
-
+use \Throwable;
+use \ErrorException;
+use \Essence\Utils\Interpolate;
+use \Essence\System\Debug\DebugBar;
+use \Essence\System\Error\ErrorConfig;
+use \Essence\System\Error\ErrorLevels;
+use \Essence\System\Logger\LogFactory;
+use \Essence\System\Error\ErrorRenderer;
+use \Essence\System\Debug\DebugInterface;
+use \Essence\System\Events\EventDispatcher;
+use \Essence\System\Logger\LoggerInterface;
 /**
- * Error Handler
- * 
- * The ErrorHandler class is responsible for managing errors and exceptions
- * across the Artex Essence Engine. It integrates with the ErrorLevels class
- * to categorize errors for customized logging and response rendering.
- * 
- * @package   Artex\Essence\Engine\System\Error
- * @category  Error Handling
- * @access    public
- * @version   1.1.0
- * @since     1.0.0
- * @link      https://artexessence.com/engine/ Project Website
- * @link      https://artexsoftware.com/ Artex Software
- * @license   Artex Permissive Software License (APSL)
+ * ErrorHandler
+ *
+ * Handles PHP errors and exceptions, provides integration with debug bar,
+ * and supports multiple error display modes.
+ *
+ * @package    Essence\System\Error
+ * @category   Error Management
+ * @version    1.0.0
+ * @since      1.0.0
+ * @author     James Gober
+ * @link       https://artexessence.com/ Project Website
  */
 class ErrorHandler
 {
-    private LoggerInterface $logger;
-    private bool $isProduction;
-    private string $templatePath;
+    /** @var ErrorConfig Configuration for error handling. */
+    private ErrorConfig $config;
+
+    /** @var ErrorRenderer Responsible for rendering errors. */
+    private ErrorRenderer $renderer;
+
+    /** @var DebugBar|null Optional debug bar integration. */
+    private ?DebugBar $debugBar;
+
+    /** @var bool Prevent recursive error handling. */
+    private bool $handlingError = false;
+
+    private ?LoggerInterface $logger;
+
+/** @var Interpolate The interpolation engine for rendering templates. */
+private Interpolate $interpolator;
+
+private ?EventDispatcher $dispatcher=null;
 
     /**
-     * ErrorHandler constructor.
+     * Constructor.
      *
-     * Initializes the ErrorHandler with a logger, production mode flag, and 
-     * path to a custom error template for production environments.
-     *
-     * @param LoggerInterface $logger       The PSR-3 compatible logger instance.
-     * @param bool            $isProduction Whether the app is in production mode.
-     * @param string          $templatePath Path to the error template file.
+     * @param ErrorConfig        $config   The error handling configuration.
+     * @param ErrorRenderer      $renderer The renderer for displaying errors.
+     * @param DebugInterface|null $debugBar Optional debug bar integration.
      */
-    public function __construct(LoggerInterface $logger, bool $isProduction, string $templatePath)
+    public function __construct(
+        ErrorConfig $config, 
+        ErrorRenderer $renderer,  
+        ?LoggerInterface $logger = null, 
+        ?DebugBar $debugBar = null,
+        ?EventDispatcher $dispatcher=null)
     {
+        $this->config = $config;
+        $this->renderer = $renderer;
         $this->logger = $logger;
-        $this->isProduction = $isProduction;
-        $this->templatePath = $templatePath;
+        $this->debugBar = $debugBar;
+        $this->dispatcher = $dispatcher;
+        $this->interpolator = new Interpolate();
     }
 
     /**
-     * Registers this error handler to capture all exceptions and errors.
+     * Register the error and exception handlers.
+     *
+     * @return void
      */
     public function register(): void
     {
-        set_exception_handler([$this, 'handleException']);
         set_error_handler([$this, 'handleError']);
+        set_exception_handler([$this, 'handleException']);
         register_shutdown_function([$this, 'handleShutdown']);
     }
 
     /**
-     * Main exception handler.
+     * Handles PHP errors.
      *
-     * Handles uncaught exceptions, logs details, and renders an appropriate 
-     * error response based on the application mode (development or production).
+     * @param int    $code
+     * @param string $message
+     * @param string $file
+     * @param int    $line
+     * @return void
+     */
+    public function handleError(int $code, string $message, string $file = '', int $line = 0): bool
+    {
+        if ($this->handlingError) {
+            return false; // Prevent recursion
+        }
+    
+        if (!(error_reporting() & $code)) {
+            return false; // Suppressed error
+        }
+    
+        $this->handlingError = true;
+    
+        try {
+            // Only convert fatal errors into exceptions
+            if (in_array($code, [E_ERROR, E_CORE_ERROR, E_COMPILE_ERROR, E_PARSE])) {
+                throw new \ErrorException($message, 0, $code, $file, $line);
+            }
+    
+            // Otherwise, log and render non-fatal errors
+            $this->logger?->error("Non-fatal error: $message in $file on line $line");
+            $templateData = [
+                'message' => $message,
+                'file' => $file,
+                'line' => $line,
+                'timestamp' => date('Y-m-d H:i:s'),
+            ];
+            echo $this->renderer->renderTemplate($templateData);
+        } catch (\Throwable $e) {
+            error_log("Error rendering non-fatal error: {$e->getMessage()}");
+        } finally {
+            $this->handlingError = false; // Reset lock
+        }
+    
+        return true;
+    }
+
+    /**
+     * Handles uncaught exceptions.
      *
-     * @param Throwable $exception The uncaught exception.
+     * @param Throwable $exception
+     * @return void
      */
     public function handleException(Throwable $exception): void
     {
-        $errorLevel = $exception instanceof \ErrorException ? $exception->getSeverity() : E_ERROR;
-
-        // Log errors based on severity levels
-        if (ErrorLevels::isInGroup($errorLevel, ErrorLevels::FATAL)) {
-            $this->logger->critical($exception->getMessage(), [
-                'file' => $exception->getFile(),
-                'line' => $exception->getLine(),
-                'trace' => $exception->getTraceAsString(),
-            ]);
-        } else {
-            $this->logger->error($exception->getMessage(), [
-                'file' => $exception->getFile(),
-                'line' => $exception->getLine(),
-                'trace' => $exception->getTraceAsString(),
-            ]);
+        if ($this->handlingError) {
+            return; // Prevent recursive handling
         }
-
-        // Render output based on environment mode and error severity
-        if ($this->isProduction) {
-            $this->renderErrorTemplate($exception);
-        } else {
-            $this->renderDebugOutput($exception);
+    
+        $this->handlingError = true;
+    
+        try {
+            // Prepare the template data
+            $templateData = [
+                'message' => $exception->getMessage(),
+                'file' => $exception->getFile(),
+                'line' => $exception->getLine(),
+                'timestamp' => date('Y-m-d H:i:s'),
+                'code' => $this->extractCodeSnippet($exception->getFile(), $exception->getLine()),
+                'trace' => $exception->getTraceAsString(),
+            ];
+    
+            // Add tokens for interpolation
+            $this->interpolator->addStaticTokens($templateData);
+    
+            // Render the exception using the renderer
+            echo $this->renderer->render($this->renderer->getDefaultTemplate(), $templateData);
+    
+            // Optionally dispatch the error event
+            if (isset($this->dispatcher)) {
+                $this->dispatcher->dispatch('error.occurred', $templateData);
+            }
+        } catch (\Throwable $renderingError) {
+            // Log or display fallback error details
+            error_log("Error during rendering: {$renderingError->getMessage()}");
+            echo "An error occurred. Unable to display details.";
+        } finally {
+            $this->handlingError = false; // Reset the handling lock
         }
     }
 
     /**
-     * Error handler for PHP errors.
+     * Handle script shutdown and check for fatal errors.
      *
-     * Converts PHP errors into CustomException instances to standardize 
-     * handling and allows them to be managed by the exception handler.
-     *
-     * @param int    $severity Error severity.
-     * @param string $message  Error message.
-     * @param string $file     File where the error occurred.
-     * @param int    $line     Line number of the error.
-     * @throws CustomException
-     */
-    public function handleError(int $severity, string $message, string $file, int $line): void
-    {
-        if (ErrorLevels::isInGroup($severity, ErrorLevels::FATAL)) {
-            throw new CustomException($message, 0, $severity, $file, $line);
-        } else {
-            // Handle non-fatal errors here, e.g., log them without stopping execution
-            $this->logger->warning($message, ['file' => $file, 'line' => $line]);
-        }
-    }
-
-    /**
-     * Shutdown handler for fatal errors.
-     *
-     * Captures fatal errors on script shutdown and redirects them to the main
-     * exception handler for logging and response.
+     * @return void
      */
     public function handleShutdown(): void
     {
-        $error = error_get_last();
-        if ($error && ErrorLevels::isInGroup($error['type'], ErrorLevels::FATAL)) {
-            $this->handleException(new \ErrorException($error['message'], 0, $error['type'], $error['file'], $error['line']));
+        $lastError = error_get_last();
+
+        if ($lastError && ErrorLevels::inGroup($lastError['type'], ErrorLevels::FATAL)) {
+            $this->handleError(
+                $lastError['type'],
+                $lastError['message'],
+                $lastError['file'],
+                $lastError['line']
+            );
         }
     }
 
     /**
-     * Renders a production error template if available.
+     * Extract a snippet of code surrounding an error line.
      *
-     * Uses a custom error template in production mode to provide a user-friendly
-     * message. Falls back to a generic message if the template is unavailable.
-     *
-     * @param Throwable $exception The exception causing the error.
+     * @param string $file    The file path.
+     * @param int    $line    The line number of the error.
+     * @param int    $padding Number of lines of context to include.
+     * @return string Code snippet with the error highlighted.
      */
-    private function renderErrorTemplate(Throwable $exception): void
+    private function extractCodeSnippet(string $file, int $line, int $padding = 5): string
     {
-        if (file_exists($this->templatePath)) {
-            include $this->templatePath;
-            return;
+        if (!file_exists($file)) {
+            return 'Code file not found.';
         }
-        echo "<h1>An error occurred</h1><p>Something went wrong. Please try again later.</p>";
-    }
 
-    /**
-     * Renders detailed debug output for development mode.
-     *
-     * Outputs error details including the stack trace, useful for debugging
-     * in a development environment.
-     *
-     * @param Throwable $exception The exception causing the error.
-     */
-    private function renderDebugOutput(Throwable $exception): void
-    {
-        $levelName = ErrorLevels::getLevelName($exception instanceof \ErrorException ? $exception->getSeverity() : E_ERROR);
-        
-        echo "<h1>Debug Information</h1>";
-        echo "<p><strong>Error Level:</strong> {$levelName}</p>";
-        echo "<p><strong>Error:</strong> {$exception->getMessage()}</p>";
-        echo "<p><strong>File:</strong> {$exception->getFile()}</p>";
-        echo "<p><strong>Line:</strong> {$exception->getLine()}</p>";
-        echo "<pre>{$exception->getTraceAsString()}</pre>";
+        $lines = file($file, FILE_IGNORE_NEW_LINES);
+        $start = max($line - $padding - 1, 0);
+        $end = min($line + $padding - 1, count($lines) - 1);
+
+        $snippet = '';
+        for ($i = $start; $i <= $end; $i++) {
+            $lineNumber = str_pad((string)($i + 1), 4, ' ', STR_PAD_LEFT);
+            $highlight = $i + 1 === $line ? 'background: #ffcccb;' : '';
+            $snippet .= sprintf(
+                '<span style="display: block; %s">%s %s</span>',
+                $highlight,
+                $lineNumber,
+                htmlspecialchars($lines[$i], ENT_QUOTES, 'UTF-8')
+            );
+        }
+        return $snippet;
     }
 }

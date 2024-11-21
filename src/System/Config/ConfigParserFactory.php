@@ -3,26 +3,26 @@
  # ┊   __┊  ___┊  ___┊   __┊   \  ┊   __┊   __┊
  # ┊   __┊___  ┊___  ┊   __┊  \   ┊  |__|   __┊
  # |_____|_____|_____|_____|__|╲__|_____|_____|
- # ARTEX ESSENCE ENGINE ⦙⦙⦙⦙⦙ A PHP META-FRAMEWORK
+ # ARTEX ESSENCE ⦙⦙⦙⦙ PHP META-FRAMEWORK & ENGINE
 /**
- * This file is part of the Artex Essence Engine and meta-framework.
- *
- * @link       https://artexessence.com/engine/ Project Website
- * @link       https://artexsoftware.com/ Artex Software
- * @license    Artex Permissive Software License (APSL)
- * @category   Configuration
- * @package    Artex\Essence\Engine\System\Config
- * @version    1.0.0
- * @since      1.0.0
- * @access     public
- * @author     
+ * This file is part of the Artex Essence meta-framework.
+ * 
+ * @link      https://artexessence.com/engine/ Project Website
+ * @link      https://artexsoftware.com/ Artex Software
+ * @license   Artex Permissive Software License (APSL)
+ * @copyright 2024 Artex Agency Inc.
  */
 declare(strict_types=1);
 
-namespace Artex\Essence\Engine\System\Config;
+namespace Essence\System\Config;
 
+use \is_a;
+use \pathinfo;
+use \strtolower;
+use \array_merge;
+use \PATHINFO_EXTENSION;
 use \InvalidArgumentException;
-use \Artex\Essence\Engine\System\Config\Parsers\ConfigParserInterface;
+use \Essence\System\Config\Parsers\ConfigParserInterface;
 
 /**
  * ConfigParserFactory
@@ -31,8 +31,16 @@ use \Artex\Essence\Engine\System\Config\Parsers\ConfigParserInterface;
  * configuration file parsers based on file extension. This allows 
  * loading configurations in various formats (e.g., JSON, XML, INI) 
  * without requiring manual selection of parsers.
- *
- * @package    Artex\Essence\Engine\System\Config
+ * 
+ * @package    Essence\System\Config
+ * @category   Configuration
+ * @access     public
+ * @version    1.0.0
+ * @since      1.0.0
+ * @author     James Gober <james@jamesgober.com>
+ * @link       https://artexessence.com/core/ Project Website
+ * @license    Artex Permissive Software License (APSL)
+ * @copyright  2024 Artex Agency Inc.
  */
 class ConfigParserFactory
 {
@@ -42,11 +50,11 @@ class ConfigParserFactory
      * @var array<string, class-string<ConfigParserInterface>>
      */
     private static array $defaultConfigParsers = [
-        'php'  => \Artex\Essence\Engine\System\Config\Parsers\PhpConfigParser::class,
-        'conf' => \Artex\Essence\Engine\System\Config\Parsers\ConfConfigParser::class,
-        'json' => \Artex\Essence\Engine\System\Config\Parsers\JsonConfigParser::class,
-        'ini'  => \Artex\Essence\Engine\System\Config\Parsers\IniConfigParser::class,
-        'xml'  => \Artex\Essence\Engine\System\Config\Parsers\XmlConfigParser::class,
+        'php'  => \Essence\System\Config\Parsers\PhpConfigParser::class,
+        'conf' => \Essence\System\Config\Parsers\ConfConfigParser::class,
+        'json' => \Essence\System\Config\Parsers\JsonConfigParser::class,
+        'ini'  => \Essence\System\Config\Parsers\IniConfigParser::class,
+        'xml'  => \Essence\System\Config\Parsers\XmlConfigParser::class,
     ];
 
     /**

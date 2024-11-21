@@ -3,21 +3,18 @@
  # ┊   __┊  ___┊  ___┊   __┊   \  ┊   __┊   __┊
  # ┊   __┊___  ┊___  ┊   __┊  \   ┊  |__|   __┊
  # |_____|_____|_____|_____|__|╲__|_____|_____|
- # ARTEX ESSENCE ENGINE ⦙⦙⦙⦙⦙ A PHP META-FRAMEWORK
+ # ARTEX ESSENCE ⦙⦙⦙⦙ PHP META-FRAMEWORK & ENGINE
 /**
- * This file is part of the Artex Essence Engine and meta-framework.
- *
- * @link       https://artexessence.com/engine/ Project Website
- * @link       https://artexsoftware.com/ Artex Software
- * @license    Artex Permissive Software License (APSL)
- * @version    1.0.0
- * @since      1.0.0
- * @category   Configuration
- * @package    Artex\Essence\Engine\System\Parsers
+ * This file is part of the Artex Essence meta-framework.
+ * 
+ * @link      https://artexessence.com/engine/ Project Website
+ * @link      https://artexsoftware.com/ Artex Software
+ * @license   Artex Permissive Software License (APSL)
+ * @copyright 2024 Artex Agency Inc.
  */
 declare(strict_types=1);
 
-namespace Artex\Essence\Engine\System\Config\Parsers;
+namespace Essence\System\Config\Parsers;
 
 /**
  * ConfigParserInterface
@@ -26,10 +23,16 @@ namespace Artex\Essence\Engine\System\Config\Parsers;
  * parser class is responsible for parsing a specific configuration 
  * file type (e.g., JSON, PHP, INI) and returning the parsed data as an 
  * associative array.
- *
- * @package    Artex\Essence\Engine\System\Config\Parsers
+ * 
+ * @package    Essence\System\Config\Parsers
  * @category   Configuration
  * @access     public
+ * @version    1.0.0
+ * @since      1.0.0
+ * @author     James Gober <james@jamesgober.com>
+ * @link       https://artexessence.com/core/ Project Website
+ * @license    Artex Permissive Software License (APSL)
+ * @copyright  2024 Artex Agency Inc.
  */
 interface ConfigParserInterface
 {

@@ -1,12 +1,12 @@
-<?php 
+<?php
  # ¸_____¸_____¸_____¸_____¸__¸ __¸_____¸_____¸
  # ┊   __┊  ___┊  ___┊   __┊   \  ┊   __┊   __┊
  # ┊   __┊___  ┊___  ┊   __┊  \   ┊  |__|   __┊
  # |_____|_____|_____|_____|__|╲__|_____|_____|
- # ARTEX ESSENCE ENGINE ⦙⦙⦙⦙⦙ A PHP META-FRAMEWORK
+ # ARTEX ESSENCE ⦙⦙⦙⦙ PHP META-FRAMEWORK & ENGINE
 /**
- * This file is part of the Artex Essence Core framework.
- *
+ * This file is part of the Artex Essence meta-framework.
+ * 
  * @link      https://artexessence.com/engine/ Project Website
  * @link      https://artexsoftware.com/ Artex Software
  * @license   Artex Permissive Software License (APSL)
@@ -14,20 +14,16 @@
  */
 declare(strict_types=1);
 
-namespace Artex\Essence\Engine\System;
+namespace Essence\System;
 
-use \Artex\Essence\Engine\Registry;
-use \Artex\Essence\Engine\System\Environment;
-use \Artex\Essence\Engine\System\Config\Config;
-use \Artex\Essence\Engine\System\Logger\LogFactory;
-use \Artex\Essence\Engine\System\Environment\Gateway;
+use \Essence\System\System;
 
 /**
  * Runtime
  *
  * Description
  * 
- * @package    Artex\Essence\Engine\System
+ * @package    Essence\System
  * @category   System
  * @access     public
  * @version    1.0.0
@@ -35,27 +31,58 @@ use \Artex\Essence\Engine\System\Environment\Gateway;
  * @since      1.0.0
  * @link       https://artexessence.com/core/ Project Website
  * @license    Artex Permissive Software License (APSL)
- * @copyright  © 2024 Artex Agency Inc.
+ * @copyright  2024 Artex Agency Inc.
  */
 class Runtime
 {
-    protected array $classes = [
-        'Environment' => \Artex\Essence\Engine\System\Environment::class,
-        'Gateway'     => \Artex\Essence\Engine\System\Environment\Gateway::class,
-        'OS'          => \Artex\Essence\Engine\System\Server\OS::class,
-        'Software'    => \Artex\Essence\Engine\System\Server\Software::class,
-        'benchmark'   => ''
-    ];
+    /** @var VERSION Sytstem Runtime version. */
+    const VERSION ='1.0.0-Dev.1';
 
-    protected ?Environment $Env = null;
+    /** @var ?Environment $Env The environment object. */
+    private ?Environment $Env = null;
+
+
+    protected array $system_classes = [
+        'Environment' => \Essence\System\Environment::class,
+        'Gateway'     => \Essence\System\Gateway::class,
+        'benchmark'   => \Essence\System\Benchmark::class,
+        'OS'          => \Essence\System\Server\OperatingSystem::class,
+        'Software'    => \Essence\System\Server\Software::class,
+    ];
+    
+    /**
+     * Undocumented function
+     *
+     * @param string $vars
+     */
+    public function __construct(string $envPath, string $gateway)
+    {
+        // Set Environment
+        $Env = new $this->system_classes['Environment']($envPath);
+
+        // Set System
+        $System = new System($Env,
+            new $this->system_classes['Gateway'](),
+            $this->system_classes['OS'], 
+            $this->system_classes['Software']
+        );
+
+    }
+
+
 
     /**
      * Undocumented function
      *
      * @param string $vars
      */
-    public function __construct(string $vars)
+    public function runtime(string $vars)
     {
+
+        $Env = new $this->system_classes['Environment']()
+        $System = new System(
+
+        );
 
         $env_config = [
             'vars_use_putenv' => false,
@@ -151,8 +178,6 @@ class Runtime
         echo '<h2>ESSENCE ENGINE: RUNTIME</h2>';
     }
 
-
-
     /**
      * Runtime config
      *
@@ -160,6 +185,10 @@ class Runtime
      */
     public function configure()
     {
+
+        // Set the error log file location for this script
+        ini_set('error_log', LOGS_PATH . 'error_log');
+
         /** @var string ESS_CHARSET The default character set. Default: `UTF-8` */
         define('ESS_CHARSET', $this->Variables->get('APP_CHARSET', 'UTF-8'));
         set_php_ini('default_charset', ESS_CHARSET);
@@ -176,7 +205,54 @@ class Runtime
     }
 
 
+/*
+define('SECURE_NONE',   0);
+define('SECURE_LOW',    3);
+define('SECURE_LAX',    6);
+define('SECURE_STRICT', 9);
 
+session.name
+session.use_strict_mode
+session.use_only_cookies
+session.use_cookies
+session.cookie_path = /
+session.cookie_domain
+session.cookie_secure
+session.cookie_samesite ['', 'Lax', 'Strict']
+session.sid_length = 32(min)
+
+
+$arr = [
+    0 => [ // SECURE_NONE
+        'session.use_strict_mode'  => false,
+        'session.use_cookies'      => true,
+        'session.use_only_cookies' => false,
+        'session.cookie_secure'    => false,
+        'session.cookie_samesite'  => ''
+    ],
+    3 => [ // SECURE_MIN
+        'session.use_strict_mode'  => false,
+        'session.use_cookies'      => true,
+        'session.use_only_cookies' => false,
+        'session.cookie_secure'    => true,
+        'session.cookie_samesite'  => ''
+    ],
+    6 => [ // SECURE_LAX
+        'session.use_strict_mode'  => true,
+        'session.use_cookies'      => true,
+        'session.use_only_cookies' => true,
+        'session.cookie_secure'    => true,
+        'session.cookie_samesite'  => 'Lax'
+    ],
+    9 => [ // SECURE_STRICT
+        'session.use_strict_mode'  => true,
+        'session.use_cookies'      => true,
+        'session.use_only_cookies' => true,
+        'session.cookie_secure'    => true,
+        'session.cookie_samesite'  => 'Strict'
+    ]
+]
+*/
 
 
  // Runtime Process

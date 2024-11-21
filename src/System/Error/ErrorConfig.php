@@ -1,81 +1,170 @@
-<?php 
- # ¸_____¸_____¸_____¸_____¸__¸ __¸_____¸_____¸
- # ┊   __┊  ___┊  ___┊   __┊   \  ┊   __┊   __┊
- # ┊   __┊___  ┊___  ┊   __┊  \   ┊  |__|   __┊
- # |_____|_____|_____|_____|__|╲__|_____|_____|
- # ARTEX ESSENCE ENGINE ⦙⦙⦙⦙⦙ A PHP META-FRAMEWORK
-/**
- * This file is part of the Artex Essence Engine and meta-framework.
- *
- * @link      https://artexessence.com/engine/ Project Website
- * @link      https://artexsoftware.com/ Artex Software
- * @license   Artex Permissive Software License (APSL)
- * @copyright 2024 Artex Agency Inc.
- */
+<?php
 declare(strict_types=1);
 
-namespace Artex\Essence\Engine\System\Error;
+namespace Essence\System\Error;
 
-use \E_ALL;
-use \Artex\Essence\Engine\System\Error\Logger;
-use \Artex\Essence\Engine\System\Error\NullLog;
-use \Artex\Essence\Engine\System\Error\ErrorService;
+use \InvalidArgumentException;
 
 /**
- * Error Factory Class
- *
- * The `LogFactory` class is responsible for creating instances of the 
- * appropriate logger based on whether logging is enabled or disabled. 
- * If logging is enabled, it returns an instance of the `Logger` class. 
- * Otherwise, it returns a `NullLog` instance, which discards all logs.
- *
- * This factory pattern provides a simple way to manage logging configuration 
- * throughout the application, ensuring that the correct logger is used based 
- * on runtime conditions.
+ * ErrorConfig
  * 
- * @package    Artex\Essence\Engine\System\Logger
- * @category   Logging
+ * Handles configurations for the error handling system, allowing flexible
+ * control over behavior and integration with different interfaces.
+ * 
+ * @package    Essence\System\Error
+ * @category   Configuration
  * @access     public
  * @version    1.0.0
  * @since      1.0.0
- * @author     James Gober
- * @link       https://artexessence.com/engine/ Project Website
- * @license    Artex Permissive Software License (APSL)
  */
 class ErrorConfig
 {
-    /** @var bool Toggle to allow, or to completely disable errors. */
-    protected bool $enabled  = true;
+    /** @var bool Whether to convert all errors into exceptions. */
+    private bool $errorsAsExceptions = true;
 
-    /** @var bool Determines if errors should be shown to the user */
-    protected bool $display  = false;
+    /** @var string The default rendering template. */
+    private string $templatePath = '/path/to/default_error_template.php';
 
-    /** @var int Dictates which type of errors are allowed to report.  */
-    protected int $reporting = E_ALL;
+    /** @var string|null Interface for error display (e.g., CLI, web). */
+    private ?string $interface = null;
 
-    /** @var bool Determines if errors should be logged internally */
-    private bool $logErrors = true;
+    /** @var array Configurable display modes. */
+    private array $displayModes = [
+        'detailed' => true,
+        'simple'   => false,
+        'debugBar' => false,
+    ];
 
-    /** @var array Configuration settings for error handling and output. */
     private array $config;
 
+    public function __construct(array $config = [])
+    {
+        $this->config = $config;
+    }
+    
+    /**
+     * Retrieve a configuration value by key.
+     *
+     * @param string $key     The key to retrieve.
+     * @param mixed  $default Default value if the key doesn't exist.
+     * @return mixed          The configuration value or default.
+     */
+    public function get(string $key, $default = null)
+    {
+        return $this->config[$key] ?? $default;
+    }
 
     /**
-     * Create an error instance.
-     * 
-     * This method instantiates a logger based on the given parameters. 
-     * If logging is enabled, a `Logger` instance is returned with the 
-     * specified logging level threshold. If logging is disabled, a 
-     * `NullLog` instance is returned, effectively disabling logging.
+     * Check if a configuration key exists.
      *
-     * @param bool   $enabled   Whether logging is enabled.
-     * @param int    $threshold The minimum logging level threshold (optional, defaults to 0).
-     * 
-     * @return LoggerService|null Returns a `Logger` instance if logging is enabled, 
-     *                            or a `NullLog` if logging is disabled.
+     * @param string $key The key to check.
+     * @return bool       True if the key exists, false otherwise.
      */
-    public static function create(bool $enabled, int $threshold = 0): ?ErrorService
+    public function has(string $key): bool
     {
-        return $enabled ? new Logger($threshold) : new NullLog($threshold);
+        return array_key_exists($key, $this->config);
+    }
+
+    /**
+     * Sets whether errors are handled as exceptions.
+     *
+     * @param bool $value
+     * @return void
+     */
+    public function setErrorsAsExceptions(bool $value): void
+    {
+        $this->errorsAsExceptions = $value;
+    }
+
+    /**
+     * Get whether errors are handled as exceptions.
+     *
+     * @return bool
+     */
+    public function getErrorsAsExceptions(): bool
+    {
+        return $this->errorsAsExceptions;
+    }
+
+    /**
+     * Set the template path for rendering errors.
+     *
+     * @param string $path
+     * @throws InvalidArgumentException If the path is invalid.
+     * @return void
+     */
+    public function setTemplatePath(string $path): void
+    {
+        if (!file_exists($path)) {
+            throw new InvalidArgumentException("Template path does not exist: $path");
+        }
+        $this->templatePath = $path;
+    }
+
+    /**
+     * Get the current template path.
+     *
+     * @return string
+     */
+    public function getTemplatePath(): string
+    {
+        return $this->templatePath;
+    }
+
+    /**
+     * Set the interface for error display.
+     *
+     * @param string $interface
+     * @return void
+     */
+    public function setInterface(string $interface): void
+    {
+        $this->interface = $interface;
+    }
+
+    /**
+     * Get the current error display interface.
+     *
+     * @return string|null
+     */
+    public function getInterface(): ?string
+    {
+        return $this->interface;
+    }
+
+    /**
+     * Enable a specific display mode.
+     *
+     * @param string $mode
+     * @return void
+     */
+    public function enableDisplayMode(string $mode): void
+    {
+        if (array_key_exists($mode, $this->displayModes)) {
+            $this->displayModes[$mode] = true;
+        }
+    }
+
+    /**
+     * Disable a specific display mode.
+     *
+     * @param string $mode
+     * @return void
+     */
+    public function disableDisplayMode(string $mode): void
+    {
+        if (array_key_exists($mode, $this->displayModes)) {
+            $this->displayModes[$mode] = false;
+        }
+    }
+
+    /**
+     * Get the current display modes.
+     *
+     * @return array
+     */
+    public function getDisplayModes(): array
+    {
+        return $this->displayModes;
     }
 }

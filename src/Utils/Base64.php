@@ -1,20 +1,20 @@
 <?php
-/* ¸_____¸____¸________¸____¸_¸  ¸__¸
-   |  _  |  __ \_    _|   __|  \/  /
-   |     |     / |  | |   __|}    {
-   |__|__|__|__\ |__| |_____|__/\__\
-   ARTEX SOFTWARE :: PHP ESSENTIALS
-*/
+ # ¸_____¸_____¸_____¸_____¸__¸ __¸_____¸_____¸
+ # ┊   __┊  ___┊  ___┊   __┊   \  ┊   __┊   __┊
+ # ┊   __┊___  ┊___  ┊   __┊  \   ┊  |__|   __┊
+ # |_____|_____|_____|_____|__|╲__|_____|_____|
+ # ARTEX ESSENCE ⦙⦙⦙⦙ PHP META-FRAMEWORK & ENGINE
 /**
- * This file is part of the PHP Essential Library by Artex Software.
+ * This file is part of the Artex Essence meta-framework.
  * 
+ * @link      https://artexessence.com/engine/ Project Website
  * @link      https://artexsoftware.com/ Artex Software
- * @license   ARTEX OPEN SOURCE LICENSE (AOSL). *Permissive open-source*
- * @copyright © 2024 Artex Agency Inc.
+ * @license   Artex Permissive Software License (APSL)
+ * @copyright 2024 Artex Agency Inc.
  */
 declare(strict_types=1);
 
-namespace Artex\Essence\Engine\Utils;
+namespace Essence\Utils;
 
 use \rtrim;
 use \strtr;
@@ -25,14 +25,15 @@ use \base64_encode;
  *
  * Provides methods for encoding and decoding web-safe Base64 strings.
  *
- * @package   Ess\Utils
- * @category  Utility
- * @version   1.0.0
- * @since     1.0.0
- * @link      https://artexessence.com/library/ Project
- * @author    James Gober <james@jamesgober.com>
- * @license   ARTEX OPEN SOURCE LICENSE (AOSL). *Permissive open-source*
- * @copyright © 2024 Artex Agency Inc.
+ * @package    Essence\Utils
+ * @category   Utility
+ * @access     public
+ * @version    1.0.0
+ * @since      1.0.0
+ * @author     James Gober <james@jamesgober.com>
+ * @link       https://artexessence.com/core/ Project Website
+ * @license    Artex Permissive Software License (APSL)
+ * @copyright  2024 Artex Agency Inc.
  */
 class Base64
 {

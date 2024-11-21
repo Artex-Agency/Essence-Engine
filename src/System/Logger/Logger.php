@@ -1,12 +1,12 @@
-<?php 
+<?php
  # ¸_____¸_____¸_____¸_____¸__¸ __¸_____¸_____¸
  # ┊   __┊  ___┊  ___┊   __┊   \  ┊   __┊   __┊
  # ┊   __┊___  ┊___  ┊   __┊  \   ┊  |__|   __┊
  # |_____|_____|_____|_____|__|╲__|_____|_____|
- # ARTEX ESSENCE ENGINE ⦙⦙⦙⦙⦙ A PHP META-FRAMEWORK
+ # ARTEX ESSENCE ⦙⦙⦙⦙ PHP META-FRAMEWORK & ENGINE
 /**
- * This file is part of the Artex Essence Core framework.
- *
+ * This file is part of the Artex Essence meta-framework.
+ * 
  * @link      https://artexessence.com/engine/ Project Website
  * @link      https://artexsoftware.com/ Artex Software
  * @license   Artex Permissive Software License (APSL)
@@ -14,9 +14,9 @@
  */
 declare(strict_types=1);
 
-namespace Artex\Essence\Engine\System\Logger;
+namespace Essence\System\Logger;
 
-use \Artex\Essence\Engine\System\Logger\LoggerService;
+use \Essence\System\Logger\LoggerService;
 
 /**
  * Logger Class
@@ -29,7 +29,7 @@ use \Artex\Essence\Engine\System\Logger\LoggerService;
  * The logger also respects the log level threshold, meaning only messages with 
  * a severity level equal to or greater than the set threshold will be recorded.
  * 
- * @package    Artex\Essence\Engine\System\Logger
+ * @package    Essence\System\Logger
  * @category   Logging
  * @access     public
  * @version    1.0.0

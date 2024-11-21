@@ -3,23 +3,28 @@
  # ┊   __┊  ___┊  ___┊   __┊   \  ┊   __┊   __┊
  # ┊   __┊___  ┊___  ┊   __┊  \   ┊  |__|   __┊
  # |_____|_____|_____|_____|__|╲__|_____|_____|
- # ARTEX ESSENCE ENGINE ⦙⦙⦙⦙⦙ A PHP META-FRAMEWORK
+ # ARTEX ESSENCE ⦙⦙⦙⦙ PHP META-FRAMEWORK & ENGINE
 /**
- * This file is part of the Artex Essence Engine and meta-framework.
- *
- * @link       https://artexessence.com/engine/ Project Website
- * @link       https://artexsoftware.com/ Artex Software
- * @license    Artex Permissive Software License (APSL)
- * @copyright  2024 Artex Agency Inc.
+ * This file is part of the Artex Essence meta-framework.
+ * 
+ * @link      https://artexessence.com/engine/ Project Website
+ * @link      https://artexsoftware.com/ Artex Software
+ * @license   Artex Permissive Software License (APSL)
+ * @copyright 2024 Artex Agency Inc.
  */
 declare(strict_types=1);
 
-namespace Artex\Essence\Engine\System\Config;
+namespace Essence\System\Config;
 
+use \ltrim;
+use \rtrim;
+use \is_dir;
+use \strtok;
 use \is_file;
+use \basename;
 use \is_array;
-use \pathinfo;
-use Artex\Essence\Engine\System\Config\ConfigParserFactory;
+use \strtolower;
+use Essence\System\Config\ConfigParserFactory;
 
 /**
  * Config
@@ -27,15 +32,24 @@ use Artex\Essence\Engine\System\Config\ConfigParserFactory;
  * Manages application configuration data with efficient loading,
  * organization, and retrieval of settings. Supports grouped 
  * configurations and unique key generation per file.
- *
- * @package    Artex\Essence\Engine\System\Config
+ * 
+ * @package    Essence\System\Config
  * @category   Configuration
+ * @access     public
  * @version    1.0.0
  * @since      1.0.0
- * @access     public
+ * @link       https://artexessence.com/core/ Project Website
+ * @license    Artex Permissive Software License (APSL)
  */
 class Config
 {
+    /**
+     * Default configuration directory path.
+     *
+     * @var string|null
+     */
+    private ?string $configPath = null;
+
     /**
      * Primary configuration storage.
      *
@@ -57,116 +71,167 @@ class Config
     private array $groups = [];
 
     /**
-     * Default configuration directory path.
+     * Keys that should remain as arrays, even if flattening is enabled.
      *
-     * @var string|null
+     * @var array<string>
      */
-    private ?string $defaultPath = null;
+    private array $keepNested = [];
 
     /**
      * Constructor
      *
-     * @param string|null $defaultPath Default path for config files (optional).
+     * @param string|null $configPath Default path for config files (optional).
      */
-    public function __construct(?string $defaultPath = null)
+    public function __construct(?string $configPath = null)
     {
-        $this->defaultPath = $defaultPath;
+        $this->setConfigPath($configPath);
+    }
+
+    /**
+     * Set the configuration path.
+     *
+     * @param string|null $filePath Absolute or relative path to the config directory.
+     * @return void
+     */
+    public function setConfigPath(?string $filePath = null): void
+    {
+        $this->configPath = is_dir($filePath) ? rtrim($filePath, '/') . '/' : null;
+    }
+
+    /**
+     * Resolves the full file path by combining the config path with the specified file.
+     *
+     * @param string|null $filePath The specified file path or filename (optional).
+     * @return string|null Full resolved file path, or null if unresolved.
+     */
+    private function resolvePath(?string $filePath): ?string
+    {
+        return $filePath && is_file($filePath) ? $filePath : ($this->configPath ? rtrim($this->configPath, '/') . '/' . ltrim($filePath, '/') : null);
+    }
+
+    /**
+     * Parses a configuration file.
+     *
+     * @param string|null $filePath Absolute or relative path to the file.
+     * @return array|false Parsed configuration data or false if the file does not exist.
+     */
+    public function parse(?string $filePath = null): array|false
+    {
+        $filePath = $this->resolvePath($filePath);
+        if (!is_file($filePath)) {
+            return false;
+        }
+        $parser = ConfigParserFactory::createParser($filePath);
+        return $parser ? ($parser->parse($filePath) ?? []) : false;
     }
 
     /**
      * Loads configuration data from a file.
      *
-     * Reads the specified file, parses its contents, and merges 
-     * the data into the existing configuration. Optionally, groups
-     * configuration keys by the file's base name to create unique keys.
-     *
-     * @param string|null $filePath   Absolute or relative path to the file.
-     * @param bool        $makeUnique Whether to group keys by file base name.
-     * 
-     * @return bool  True if the configuration was successfully loaded.
+     * @param string|null $filePath Path to the configuration file.
+     * @param bool $group Whether to group keys by file base name.
+     * @param bool $flatten Whether to flatten nested keys to dot notation.
+     * @param array<string> $keepNested Array of keys that should remain nested.
+     * @return bool True if the configuration was successfully loaded.
      */
-    public function load(?string $filePath = null, bool $makeUnique = true): bool
+    public function load(?string $filePath = null, bool $group = false, bool $flatten = true, array $keepNested = []): bool
     {
-        $filePath = $this->resolveFilePath($filePath);
-        if (!is_file($filePath)) {
-            return false;
-        }
-
-        $parser = ConfigParserFactory::createParser($filePath);
-        if (!$parser) {
-            return false;
-        }
-
-        $data = $parser->parse($filePath);
-        if (!is_array($data)) {
-            return false;
-        }
-
-        return $makeUnique ? $this->groupData($data, $filePath) : $this->merge($data);
+        $this->keepNested = $keepNested;
+        return $group ? $this->loadGroup($filePath, null, $flatten) : $this->merge($this->parse($filePath) ?: [], $flatten);
     }
 
     /**
-     * Resolve the full file path by combining the default path with the specified file.
+     * Loads configuration data as a named group.
      *
-     * @param string|null $filePath The specified file path or filename (optional).
-     * @return string|null Full resolved file path, or null if unresolved.
+     * @param string|null $filePath Path to the configuration file.
+     * @param string|null $group Optional group name. If null, a name will be generated.
+     * @return bool True if the configuration was successfully loaded.
      */
-    private function resolveFilePath(?string $filePath): ?string
+    public function loadGroup(?string $filePath = null, ?string $group = null): bool
     {
-        // Check if a file path is provided
-        if ($filePath) {
-            // If the given path is already a full path, return it
-            if (is_file($filePath)) {
-                return $filePath;
+        $data = $this->parse($filePath);
+        if (!$data) {
+            return false;
+        }
+        $group = strtolower($group ?: $this->generateGroupName($filePath));
+        return $group ? $this->makeGroup($group, $data) : false;
+    }
+
+    /**
+     * Generate a group name from the file path.
+     *
+     * @param string $filePath The file path from which to generate the group name.
+     * @return string|false Generated group name or false if invalid.
+     */
+    private function generateGroupName(string $filePath): string|false
+    {
+        $fileName = strtolower(basename($filePath));
+        $name = strtok($fileName, '.');
+        return preg_replace('/[^\w]/', '_', $name) ?: false;
+    }
+
+    /**
+     * Creates a configuration group, optionally flattening nested keys.
+     *
+     * @param string $name Group name.
+     * @param array $data Configuration data to be grouped.
+     * @param bool $flatten Whether to flatten nested keys to dot notation.
+     * @return bool True if the group was successfully created.
+     */
+    private function makeGroup(string $name, array $data, bool $flatten = true): bool
+    {
+        foreach ($data as $key => $value) {
+            $fullKey = "{$name}.{$key}";
+            if ($flatten && !in_array($fullKey, $this->keepNested, true)) {
+                $this->flattenAndStore($fullKey, $value);
+            } else {
+                $this->config[$fullKey] = $value;
             }
-            // If not a full path, use the default path as base
-            return rtrim($this->defaultPath, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . ltrim($filePath, DIRECTORY_SEPARATOR);
+            $this->groups[$name][$key] = $fullKey;
         }
-
-        // Default to a path within the default directory
-        return $this->defaultPath;
-    }
-    /**
-     * Groups and sanitizes configuration keys by file base name.
-     *
-     * Strips the file extension and sanitizes the filename to use as a 
-     * group identifier, then prepends it to each configuration key.
-     * Merges grouped keys into the primary config.
-     *
-     * @param array  $data Parsed configuration data from the file.
-     * @param string $file The file path to be processed.
-     * 
-     * @return bool True after processing and merging grouped data.
-     */
-    private function groupData(array $data, string $file): bool
-    {
-        $group = strtolower(trim(pathinfo($file, PATHINFO_FILENAME)));
-        $group = preg_replace('/[^\w]/', '_', $group);
-        $group = (strlen($group) >= 30) ? substr($group, 0, 30) : $group;
-
-        $this->groups[$group] ??= [];
-
-        foreach ($data as $key => $val) {
-            if (!$key) continue;
-
-            $key = strtolower($key);
-            $this->groups[$group][$key] = $val;
-            $this->config["$group.$key"] = $val;
-        }
-        
         return true;
     }
 
     /**
-     * Adds or updates a configuration setting.
+     * Flattens nested arrays into dot notation and stores them in the config array.
      *
-     * @param string $key   The unique identifier/key for the setting.
-     * @param mixed  $value The value associated with the key.
+     * @param string $prefix Prefix for the flattened keys.
+     * @param mixed $data Nested data to be flattened.
      * @return void
      */
-    public function add(string $key, $value): void
+    private function flattenAndStore(string $prefix, mixed $data): void
+    {
+        if (is_array($data)) {
+            foreach ($data as $key => $value) {
+                $this->flattenAndStore("{$prefix}.{$key}", $value);
+            }
+        } else {
+            $this->config[$prefix] = $data;
+        }
+    }
+
+    /**
+     * Add a value to the configuration array.
+     *
+     * @param string $key Dot notation key (e.g., 'errors.display').
+     * @param mixed $value Value to set in the configuration.
+     * @return void
+     */
+    public function add(string $key, mixed $value): void
     {
         $this->config[$key] = $value;
+    }
+
+    /**
+     * Get a value from the configuration array.
+     *
+     * @param string $key Dot notation key (e.g., 'errors.display').
+     * @param mixed $default Default value if key is not found.
+     * @return mixed|null The value if found, or the default if the key does not exist.
+     */
+    public function get(string $key, mixed $default = null): mixed
+    {
+        return $this->config[$key] ?? $default;
     }
 
     /**
@@ -181,31 +246,13 @@ class Config
     }
 
     /**
-     * Retrieves the value of a configuration setting.
-     * 
-     * Looks up a configuration value by key, with an optional default
-     * value if the key does not exist.
-     * 
-     * @param string $key     The unique identifier/key for the setting.
-     * @param mixed  $default Default value returned if the key is not found.
-     *
-     * @return mixed  The value of the setting or the default.
-     */
-    final public function get(string $key, $default = null): mixed
-    {
-        return $this->config[$key] ?? $default;
-    }
-
-    /**
      * Retrieves all configuration settings.
-     * 
-     * Returns the entire configuration array.
      *
      * @return array The array containing all configuration settings.
      */
     final public function getAll(): array
     {
-        return $this->config ?? [];
+        return $this->config;
     }
 
     /**
@@ -216,21 +263,23 @@ class Config
      */
     public function delete(string $key): void
     {
-        if ($this->has($key)) {
-            unset($this->config[$key]);
-        }
+        unset($this->config[$key]);
     }
 
     /**
-     * Clears all configuration settings.
-     * 
-     * Resets the configuration array to an empty array.
+     * Remove a configuration group.
      *
-     * @return array The empty configuration array after clearing.
+     * @param string $group The group to remove.
+     * @return void
      */
-    final public function clear(): array
+    public function remove(string $group): void
     {
-        return $this->config = [];
+        if (isset($this->groups[$group])) {
+            foreach ($this->groups[$group] as $key) {
+                unset($this->config[$key]);
+            }
+            unset($this->groups[$group]);
+        }
     }
 
     /**
@@ -243,5 +292,16 @@ class Config
     {
         $this->config = array_merge($this->config, $data);
         return true;
+    }
+
+    /**
+     * Clears all configuration settings.
+     * 
+     * @return void
+     */
+    final public function clear(): void
+    {
+        $this->config = [];
+        $this->groups = [];
     }
 }

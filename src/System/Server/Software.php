@@ -1,12 +1,12 @@
-<?php 
+<?php
  # ¸_____¸_____¸_____¸_____¸__¸ __¸_____¸_____¸
  # ┊   __┊  ___┊  ___┊   __┊   \  ┊   __┊   __┊
  # ┊   __┊___  ┊___  ┊   __┊  \   ┊  |__|   __┊
  # |_____|_____|_____|_____|__|╲__|_____|_____|
- # ARTEX ESSENCE ENGINE ⦙⦙⦙⦙⦙ A PHP META-FRAMEWORK
+ # ARTEX ESSENCE ⦙⦙⦙⦙ PHP META-FRAMEWORK & ENGINE
 /**
- * This file is part of the Artex Essence Core framework.
- *
+ * This file is part of the Artex Essence meta-framework.
+ * 
  * @link      https://artexessence.com/engine/ Project Website
  * @link      https://artexsoftware.com/ Artex Software
  * @license   Artex Permissive Software License (APSL)
@@ -14,140 +14,59 @@
  */
 declare(strict_types=1);
 
-namespace Artex\Essence\Engine\System\Server;
+namespace Essence\System\Server;
 
 use \strpos;
 use \strtolower;
 
 /**
- * Server Host
+ * Server Software
  *
- * Detects and provides information about the server software running 
- * the application.Common server types include Apache, Nginx, IIS, 
- * LiteSpeed, and Caddy.
+ * Provides detection and information about the server software
+ * type based on common identifiers in server environment variables.
  *
- * @package    Artex\Essence\Engine\System\Server
+ * @package    Essence\System\Server
  * @category   Server
  * @access     public
- * @version    1.0.0
+ * @version    1.0.1
  * @since      1.0.0
- * @author     James Gober
  * @link       https://artexessence.com/engine/ Project Website
  * @license    Artex Permissive Software License (APSL)
  */
 class Software
 {
-    /**
-     * @var string The detected server type.
-     */
-    private string $Software;
+    /** @var string UNKNOWN Label for unknown server software. */
+    public const UNKNOWN = 'Unknown';
+
+    /** @var array<string, string> List of common server software identifiers. */
+    private static array $servers = [
+        'apache'    => 'Apache',
+        'nginx'     => 'Nginx',
+        'iis'       => 'IIS',
+        'litespeed' => 'LiteSpeed',
+        'caddy'     => 'Caddy',
+    ];
+
+    /** @var string|null Cached server software type. */
+    private static ?string $software = null;
 
     /**
-     * Initializes the ServerHost class and determines the server type.
-     */
-    public function __construct()
-    {
-        $this->Software = $this->detectServerType();
-    }
-    
-    /**
-     * Detects the type of server software running based on common server identifiers.
+     * Detects and returns the server software type.
      *
-     * @return string The detected server type (e.g., 'Apache', 'Nginx', 'IIS', 'LiteSpeed', 'Caddy', or 'Unknown').
+     * @return string The detected server software type.
      */
-    private function detectServerType(): string
+    public static function get(): string
     {
-        if (!isset($_SERVER['SERVER_SOFTWARE'])) {
-            return 'Unknown';
+        if (self::$software === null) {
+            $serverSoftware = strtolower($_SERVER['SERVER_SOFTWARE'] ?? '');
+            foreach (self::$servers as $key => $name) {
+                if (strpos($serverSoftware, $key) !== false) {
+                    self::$software = $name;
+                    break;
+                }
+            }
+            self::$software = self::$software ?? self::UNKNOWN;
         }
-        $serverSoftware = strtolower($_SERVER['SERVER_SOFTWARE']);
-
-        // Detect Apache 
-        if (strpos($serverSoftware, 'apache') !== false) {
-            return 'Apache';
-        }
-
-        // Detect Nginx 
-        if (strpos($serverSoftware, 'nginx') !== false) {
-            return 'Nginx';
-        }
-
-        // Detect IIS 
-        if (strpos($serverSoftware, 'iis') !== false) {
-            return 'IIS';
-        }
-
-        // Detect LiteSpeed 
-        if (strpos($serverSoftware, 'litespeed') !== false) {
-            return 'LiteSpeed';
-        }
-
-        // Detect Caddy
-        if (strpos($serverSoftware, 'caddy') !== false) {
-            return 'Caddy';
-        }
-
-        // Unknown
-        return 'Unknown';
-    }
-
-    /**
-     * Returns the detected server software type.
-     *
-     * @return string The detected server type.
-     */
-    public function get(): string
-    {
-        return $this->Software;
-    }
-
-    /**
-     * Checks if the server software is Apache.
-     *
-     * @return bool True if the server is Apache, false otherwise.
-     */
-    public function isApache(): bool
-    {
-        return $this->Software === 'Apache';
-    }
-
-    /**
-     * Checks if the server software is Nginx.
-     *
-     * @return bool True if the server is Nginx, false otherwise.
-     */
-    public function isNginx(): bool
-    {
-        return $this->Software === 'Nginx';
-    }
-
-    /**
-     * Checks if the server software is IIS (Internet Information Services).
-     *
-     * @return bool True if the server is IIS, false otherwise.
-     */
-    public function isIIS(): bool
-    {
-        return $this->Software === 'IIS';
-    }
-
-    /**
-     * Checks if the server software is LiteSpeed.
-     *
-     * @return bool True if the server is LiteSpeed, false otherwise.
-     */
-    public function isLiteSpeed(): bool
-    {
-        return $this->Software === 'LiteSpeed';
-    }
-
-    /**
-     * Checks if the server software is Caddy.
-     *
-     * @return bool True if the server is Caddy, false otherwise.
-     */
-    public function isCaddy(): bool
-    {
-        return $this->Software === 'Caddy';
+        return self::$software;
     }
 }

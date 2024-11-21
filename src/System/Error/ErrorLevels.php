@@ -1,20 +1,20 @@
-<?php 
- # ¸_____¸_____¸_____¸_____¸__¸ __¸_____¸_____¸
- # ┊   __┊  ___┊  ___┊   __┊   \  ┊   __┊   __┊
- # ┊   __┊___  ┊___  ┊   __┊  \   ┊  |__|   __┊
- # |_____|_____|_____|_____|__|╲__|_____|_____|
- # ARTEX ESSENCE ENGINE ⦙⦙⦙⦙⦙ A PHP META-FRAMEWORK
+<?php
+# ¸_____¸_____¸_____¸_____¸__¸ __¸_____¸_____¸
+# ┊   __┊  ___┊  ___┊   __┊   \  ┊   __┊   __┊
+# ┊   __┊___  ┊___  ┊   __┊  \   ┊  |__|   __┊
+# |_____|_____|_____|_____|__|╲__|_____|_____|
+# ARTEX ESSENCE ⦙⦙⦙⦙ PHP META-FRAMEWORK & ENGINE
 /**
- * This file is part of the Artex Essence Engine and meta-framework.
- *
- * @link      https://artexessence.com/engine/ Project Website
+ * This file is part of the Artex Essence meta-framework.
+ * 
+ * @link      https://artexessence.com/ Project Website
  * @link      https://artexsoftware.com/ Artex Software
  * @license   Artex Permissive Software License (APSL)
  * @copyright 2024 Artex Agency Inc.
  */
 declare(strict_types=1);
 
-namespace Artex\Essence\Engine\System\Error;
+namespace Essence\System\Error;
 
 /**
  * ErrorLevels
@@ -22,11 +22,15 @@ namespace Artex\Essence\Engine\System\Error;
  * Provides categorized PHP error levels for streamlined error handling.
  * Groups different types of errors under constants for easy reference.
  * 
- * @package    Artex\Essence\Engine\System\Error
+ * @package    Essence\System\Error
  * @category   Error Management
+ * @access     public
  * @version    1.0.0
  * @since      1.0.0
- * @access     public
+ * @author     James Gober <james@jamesgober.com>
+ * @link       https://artexessence.com/ Project Website
+ * @license    Artex Permissive Software License (APSL)
+ * @copyright  2024 Artex Agency Inc.
  */
 class ErrorLevels
 {
@@ -125,9 +129,75 @@ class ErrorLevels
      * @param int $group The error group constant to check against.
      * @return bool True if the error level matches the group; otherwise, false.
      */
-    public static function isInGroup(int $errorLevel, int $group): bool
+    public static function inGroup(int $errorLevel, int $group): bool
     {
         return (bool)($errorLevel & $group);
+    }
+
+    /**
+     * Check if error code is fatal
+     *
+     * @param  integer $errno The error level code.
+     * @return boolean Returns true if code is fatal; otherwise returns false.
+     */
+    public function isFatal(int $errno): bool
+    {
+        return (($errno & self::FATAL_LEVEL) ? true : false);
+    }
+
+    /**
+     * Check if error code is a warning
+     *
+     * @param  integer $errno The error level code.
+     * @return boolean Returns true if code is warning; otherwise returns false.
+     */
+    public function isWarning(int $errno): bool
+    {
+        return (($errno & self::WARNING_LEVEL) ? true : false);
+    }
+
+    /**
+     * Check if error code is a notice
+     *
+     * @param  integer $errno The error level code.
+     * @return boolean Returns true if code is notice; otherwise returns false.
+     */
+    public function isNotice(int $errno): bool
+    {
+        return (($errno & self::NOTICE_LEVEL) ? true : false);
+    }
+
+    /**
+     * Check if error code is a strict notice
+     *
+     * @param  integer $errno The error level code.
+     * @return boolean Returns true if code is strict; otherwise returns false.
+     */
+    public function isStrict(int $errno): bool
+    {
+        return (($errno & self::STRICT_LEVEL) ? true : false);
+    }
+
+    /**
+     * Check if error code is deprecated
+     *
+     * @param  integer $errno The error level code.
+     * @return boolean Returns true if code is deprecated; otherwise returns false.
+     */
+    public function isDeprecated(int $errno): bool
+    {
+        return (($errno & self::DEPRECATED_LEVEL) ? true : false);
+    }
+
+    /**
+     * Check if error is a user level error
+     *
+     * @param  integer $errno The error level code.
+     * @return boolean Returns true if user error; otherwise returns false.
+     */
+    public function isUserError(int $errno):bool
+    {
+        return (($errno & self::USER_LEVEL) ? true : false);
     }
 
     /**

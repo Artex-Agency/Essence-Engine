@@ -1,12 +1,12 @@
-<?php 
+<?php
  # ¸_____¸_____¸_____¸_____¸__¸ __¸_____¸_____¸
  # ┊   __┊  ___┊  ___┊   __┊   \  ┊   __┊   __┊
  # ┊   __┊___  ┊___  ┊   __┊  \   ┊  |__|   __┊
  # |_____|_____|_____|_____|__|╲__|_____|_____|
- # ARTEX ESSENCE ENGINE ⦙⦙⦙⦙⦙ A PHP META-FRAMEWORK
+ # ARTEX ESSENCE ⦙⦙⦙⦙ PHP META-FRAMEWORK & ENGINE
 /**
- * This file is part of the Artex Essence Core framework.
- *
+ * This file is part of the Artex Essence meta-framework.
+ * 
  * @link      https://artexessence.com/engine/ Project Website
  * @link      https://artexsoftware.com/ Artex Software
  * @license   Artex Permissive Software License (APSL)
@@ -14,9 +14,9 @@
  */
 declare(strict_types=1);
 
-namespace Artex\Essence\Engine\System\Logger;
+namespace Essence\System\Logger;
 
-use \Artex\Essence\Engine\System\Logger\LoggerService;
+use \Essence\System\Logger\LoggerService;
 
 /**
  * Null Logger Class
@@ -31,7 +31,7 @@ use \Artex\Essence\Engine\System\Logger\LoggerService;
  * disabling of logging by using this class instead of other logger 
  * implementations.
  * 
- * @package    Artex\Essence\Engine\System\Logger
+ * @package    Essence\System\Logger
  * @category   Logging
  * @access     public
  * @version    1.0.0

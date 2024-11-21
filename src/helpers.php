@@ -1,26 +1,26 @@
-<?php 
+<?php
 # ¸_____¸_____¸_____¸_____¸__¸ __¸_____¸_____¸
 # ┊   __┊  ___┊  ___┊   __┊   \  ┊   __┊   __┊
 # ┊   __┊___  ┊___  ┊   __┊  \   ┊  |__|   __┊
 # |_____|_____|_____|_____|__|╲__|_____|_____|
-# ARTEX ESSENCE ENGINE ⦙⦙⦙⦙⦙ A PHP META-FRAMEWORK
+# ARTEX ESSENCE ⦙⦙⦙⦙ PHP META-FRAMEWORK & ENGINE
 /**
  * Helpers
  * 
  * Core utility functions to simplify operations across the application.
  * Designed to enhance debugging, error handling, and general utility.
  *
- * This file is part of the Artex Essence Engine and meta-framework.
+ * This file is part of the Artex Essence meta-framework.
  *
- * @package    Artex\Essence\Engine
- * @category   Base
+ * @package    Essence
+ * @category   Essence
+ * @access     public
  * @version    1.0.0
  * @since      1.0.0
  * @author     James Gober <james@jamesgober.com>
- * @link       https://artexessence.com/engine/ Project Website
- * @link       https://artexsoftware.com/ Artex Software
+ * @link       https://artexessence.com/core/ Project Website
  * @license    Artex Permissive Software License (APSL)
- * @copyright  © 2024 Artex Agency Inc.
+ * @copyright  2024 Artex Agency Inc.
  */
 declare(strict_types=1);
 /*
@@ -44,27 +44,31 @@ use \date_default_timezone_get;
 use \date_default_timezone_set;
 */
 
-/**
- * Checks if string is serialized
- *
- * @param  string  $data The string to check if serialized.
- * @return boolean True if the string is serialized; otherwise false.
- */
-function is_serialized(string $data): bool 
+
+function get_environment_config_path(string $environment): string|false
 {
-    $data = trim($data);
-    if (in_array(substr($data, 0, 2), ['a:', 's:', 'i:', 'd:', 'b:', 'O:'])) {
-        try {
-            $unserialized = unserialize($data);
-            if ($unserialized !== false || $data === 'b:0;') {
-                return true;
-            }
-        } catch (\Throwable $e) {
-            return false;
-        }
+    $path = (CONFIG_PATH . 'environment' . DS . $environment . DS);
+    if((!is_dir($path)) && ($environment !== 'production')){
+        return get_environment_config_path('production');
     }
-    return false;
+    return ((is_dir($path)) ? $path : false);
 }
+
+
+function get_environment_config(string $environment): array|false
+{
+    if(!$path = get_environment_config_path($environment)){
+        return false;
+    }
+    return [
+        'errors'  => ($path . 'errors.cfg.php'),
+        'logging' => ($path . 'logging.cfg.php')
+    ];
+}
+
+
+
+
 
 
 /**
@@ -213,124 +217,6 @@ function getTimeZone(): string
      */
     return date_default_timezone_get();
 }
-
-/*
-
-#### SERVER CONFIG #################################################### */
-
-/**
- * Sanitize and set PHP ini configurations for numeric limits.
- *
- * @param string $key   The ini configuration key to set.
- * @param mixed $value  The value to sanitize and set for the ini config.
- * @return bool         True if successfully set, false otherwise.
- */
-function set_php_ini(string $key, mixed $value): bool
-{
-    // if is ini_num, pass to update function
-    $iniKeys = ['max_execution_time', 'max_input_time', 'max_input_vars'];
-    if (in_array($key, $iniKeys)) {
-        return set_php_ini_num($key, $value);
-    }
-
-    // if is ini_mem, pass to update function
-    $iniKeys = ['memory_limit', 'upload_max_filesize', 'post_max_size'];
-    if (in_array($key, $iniKeys)) {
-        return set_php_ini_mem($key, $value);
-    }
-
-    // Set the ini configuration value
-    return ini_set($setting, $value) !== false;
-}
-
-/**
- * Sanitize and set PHP ini configurations for memory-related limits.
- *
- * This function validates and formats the value for `memory_limit`, 
- * `upload_max_filesize`, and `post_max_size` to ensure compatibility 
- * with PHP's ini settings.
- *
- * @param string $key   The ini configuration key to set.
- * @param string $value The value to sanitize and set for the ini configuration.
- * @return bool         True if successfully set, false otherwise.
- */
-function set_php_ini_mem(string $key, string $value): bool
-{
-    // Define allowed configuration keys
-    $allowedKeys = ['memory_limit', 'upload_max_filesize', 'post_max_size'];
-
-    // Only proceed if the key is allowed
-    if (!in_array($key, $allowedKeys)) {
-        return false;
-    }
-
-    // Extract numeric value
-    $numericValue = (float) filter_var($value, FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
-
-    // Extract and normalize unit
-    $unit = strtoupper(preg_replace('/[0-9.]/', '', $value)) ?: 'M';
-
-    // Validate unit and convert if necessary
-    if (!in_array($unit, ['M', 'K', 'G'])) {
-        $unit = 'M'; // Default to MB if an invalid unit is provided
-    }
-
-    // Rebuild value with validated unit
-    $formattedValue = $numericValue . $unit;
-
-    // Set the ini configuration value
-    return ini_set($key, $formattedValue) !== false;
-}
-
-/**
- * Sanitize and set PHP ini configurations for numeric limits.
- *
- * This function validates and formats the value for numeric ini 
- * settings like `max_execution_time`, `max_input_time`, and 
- * `max_input_vars` to ensure compatibility with PHP's ini settings.
- * 
- * ```
- * max_input_time: limits the amount of time, in seconds, that PHP 
- *                 will spend parsing input data... (e.g., POST, GET, 
- *                 and COOKIE data). This setting helps prevent PHP 
- *                 from hanging while processing large amounts of 
- *                 input data, such as when users submit large forms 
- *                 or upload many files.
- *
- * max_input_vars: limits the maximum number of input variables allowed 
- *                 per request (across GET, POST, and COOKIE data). 
- *                 This setting is a security measure to prevent PHP 
- *                 from being overwhelmed by excessive input variables, 
- *                 which could lead to memory exhaustion or 
- *                 denial-of-service attacks.
- * 
- * ```
- * @param string $key   The ini configuration key to set.
- * @param mixed $value  The value to sanitize and set for the ini config.
- * @return bool         True if successfully set, false otherwise.
- */
-function set_php_ini_num(string $key, mixed $value): bool
-{
-    // Define allowed configuration keys
-    $allowedKeys = ['max_execution_time', 'max_input_time', 'max_input_vars'];
-
-    // Only proceed if the key is allowed
-    if (!in_array($key, $allowedKeys)) {
-        return false;
-    }
-
-    // Ensure the value is numeric and is an integer
-    $numericValue = filter_var($value, FILTER_VALIDATE_INT);
-    if ($numericValue === false) {
-        return false;
-    }
-
-    // Set the ini configuration value
-    return ini_set($key, (string) $numericValue) !== false;
-}
-
-
-
 
 
 

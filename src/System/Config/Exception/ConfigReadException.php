@@ -3,18 +3,18 @@
  # ┊   __┊  ___┊  ___┊   __┊   \  ┊   __┊   __┊
  # ┊   __┊___  ┊___  ┊   __┊  \   ┊  |__|   __┊
  # |_____|_____|_____|_____|__|╲__|_____|_____|
- # ARTEX ESSENCE ENGINE ⦙⦙⦙⦙⦙ A PHP META-FRAMEWORK
+ # ARTEX ESSENCE ⦙⦙⦙⦙ PHP META-FRAMEWORK & ENGINE
 /**
- * This file is part of the Artex Essence Engine and meta-framework.
- *
- * @link       https://artexessence.com/engine/ Project Website
- * @link       https://artexsoftware.com/ Artex Software
- * @license    Artex Permissive Software License (APSL)
- * @copyright  2024 Artex Agency Inc.
+ * This file is part of the Artex Essence meta-framework.
+ * 
+ * @link      https://artexessence.com/engine/ Project Website
+ * @link      https://artexsoftware.com/ Artex Software
+ * @license   Artex Permissive Software License (APSL)
+ * @copyright 2024 Artex Agency Inc.
  */
 declare(strict_types=1);
 
-namespace Artex\Essence\Engine\System\Config\Exception;
+namespace Essence\System\Config\Exception\Exception;
 
 use ErrorException;
 
@@ -23,7 +23,7 @@ use ErrorException;
  *
  * Exception thrown when an error occurs while reading a configuration file.
  *
- * @package    Artex\Essence\Engine\System\Config\Exception
+ * @package    Essence\System\Config\Exception
  * @category   Configuration
  * @version    1.0.0
  * @since      1.0.0
